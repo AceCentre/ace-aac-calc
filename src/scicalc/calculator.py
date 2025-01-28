@@ -1,13 +1,20 @@
 import math
 import re
 import numpy as np
+import pyperclip
+import time
 
 class Calculator:
     def __init__(self):
         self._memory = 0
         self._last_result = 0
+        self._last_expression = None
+        self._last_pasteboard = None
 
     def evaluate(self, expression: str) -> float:
+        # Store the original expression
+        self._last_expression = expression
+        
         # Clean and prepare the expression
         expression = self._prepare_expression(expression)
         
@@ -156,6 +163,68 @@ class Calculator:
             expression = re.sub(r'(\d+(?:\.\d+)?)\s*%', handle_standalone_percent, expression)
             
         return expression
+
+    def format_output(self, result: float, return_format: str = "answer") -> str:
+        """Format the output based on the requested format."""
+        if return_format == "answer":
+            return f"{result}"
+        elif return_format == "answer,calc":
+            if self._last_expression:
+                return f"{result}\n{self._last_expression} = {result}"
+            return f"{result}"
+        else:  # full
+            if self._last_expression:
+                return f"{self._last_expression} = {result}"
+            return f"{result}"
+
+    def watch_pasteboard(self, callback=None):
+        """
+        Watch the pasteboard for changes and evaluate the last line of any new content.
+        
+        Args:
+            callback: Optional function to call with results
+        """
+        print("Watching pasteboard for calculations... Press Ctrl+C to stop.")
+        try:
+            while True:
+                current_content = pyperclip.paste()
+                
+                # Check if pasteboard has changed
+                if current_content != self._last_pasteboard:
+                    lines = current_content.strip().split('\n')
+                    last_line = lines[-1].strip()
+                    
+                    try:
+                        # Try to evaluate the last line
+                        result = self.evaluate(last_line)
+                        
+                        # Update the last line with the result
+                        lines[-1] = f"{last_line} = {result}"
+                        new_content = '\n'.join(lines)
+                        
+                        # Update pasteboard
+                        pyperclip.copy(new_content)
+                        
+                        # Store current state
+                        self._last_pasteboard = new_content
+                        
+                        # Call callback if provided
+                        if callback:
+                            callback(result, last_line)
+                            
+                    except ValueError:
+                        # Not a valid calculation, just update last content
+                        self._last_pasteboard = current_content
+                
+                time.sleep(0.5)  # Check every half second
+                
+        except KeyboardInterrupt:
+            print("\nStopped watching pasteboard.")
+
+    def output_to_pasteboard(self, result: float, format: str = "answer"):
+        """Output the result to the pasteboard in the specified format."""
+        output = self.format_output(result, format)
+        pyperclip.copy(output)
 
     def memory_store(self):
         self._memory = self._last_result
