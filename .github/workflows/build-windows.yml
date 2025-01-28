@@ -1,0 +1,52 @@
+name: Build Windows Installer
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  release:
+    types: [created]
+
+jobs:
+  build:
+    runs-on: windows-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+        
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install .[build]
+        
+    - name: Install NSIS
+      run: |
+        choco install nsis -y
+        
+    - name: Build executable
+      run: |
+        pyinstaller --name scicalc --onefile --add-data "src/scicalc/templates;templates" src/scicalc/cli.py
+        
+    - name: Build Installer
+      run: |
+        & 'C:\Program Files (x86)\NSIS\makensis.exe' scripts/windows-installer.nsi
+        
+    - name: Upload artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: windows-installer
+        path: ScientificCalculator-Setup.exe
+        
+    - name: Upload to release
+      if: github.event_name == 'release'
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      uses: softprops/action-gh-release@v1
+      with:
+        files: ScientificCalculator-Setup.exe 
