@@ -4,6 +4,9 @@ Name "Scientific Calculator"
 OutFile "ScientificCalculator-Setup.exe"
 InstallDir "$PROGRAMFILES\Scientific Calculator"
 
+!define MUI_ICON "..\resources\logo_44I_icon.ico"
+!define MUI_UNICON "..\resources\logo_44I_icon.ico"
+
 !insertmacro MUI_PAGE_WELCOME
 !insertmacro MUI_PAGE_DIRECTORY
 !insertmacro MUI_PAGE_INSTFILES
@@ -19,14 +22,15 @@ InstallDir "$PROGRAMFILES\Scientific Calculator"
 Section "Install"
   SetOutPath "$INSTDIR"
   File "dist\scicalc.exe"
+  File "..\resources\logo_44I_icon.ico"
   
   # Create Start Menu shortcuts
   CreateDirectory "$SMPROGRAMS\Scientific Calculator"
-  CreateShortcut "$SMPROGRAMS\Scientific Calculator\Scientific Calculator.lnk" "$INSTDIR\scicalc.exe"
-  CreateShortcut "$SMPROGRAMS\Scientific Calculator\Calculator Watch Mode.lnk" "$INSTDIR\scicalc.exe" "--readpasteboard"
+  CreateShortcut "$SMPROGRAMS\Scientific Calculator\Scientific Calculator.lnk" "$INSTDIR\scicalc.exe" "" "$INSTDIR\logo_44I_icon.ico"
+  CreateShortcut "$SMPROGRAMS\Scientific Calculator\Calculator Watch Mode.lnk" "$INSTDIR\scicalc.exe" "--readpasteboard" "$INSTDIR\logo_44I_icon.ico"
   
   # Create Desktop shortcuts
-  CreateShortcut "$DESKTOP\Scientific Calculator.lnk" "$INSTDIR\scicalc.exe"
+  CreateShortcut "$DESKTOP\Scientific Calculator.lnk" "$INSTDIR\scicalc.exe" "" "$INSTDIR\logo_44I_icon.ico"
   
   # Add to PATH
   EnVar::AddValue "PATH" "$INSTDIR"
@@ -53,6 +57,7 @@ Section "Uninstall"
   
   # Remove program files
   Delete "$INSTDIR\scicalc.exe"
+  Delete "$INSTDIR\logo_44I_icon.ico"
   Delete "$INSTDIR\Uninstall.exe"
   RMDir "$INSTDIR"
   
