@@ -60,6 +60,9 @@ class Calculator:
             # Handle special cases
             expression = self._handle_special_cases(expression)
             
+            # Debug the expression before evaluation
+            # print(f"Evaluating: {expression}")
+            
             # Evaluate the expression
             result = eval(expression, {"__builtins__": {}}, safe_dict)
             self._last_result = result
@@ -68,6 +71,17 @@ class Calculator:
             raise ValueError(f"Invalid expression: {str(e)}")
 
     def _prepare_expression(self, expression: str) -> str:
+        # First handle function calls to prevent interference
+        def handle_function_call(match):
+            func = match.group(1)
+            args = match.group(2)
+            # Special handling for log₂
+            if func == 'log₂':
+                return f'log2({args})'
+            return f'{func}({args})'
+            
+        expression = re.sub(r'(\w+₂?)\s*\(([^)]+)\)', handle_function_call, expression)
+        
         # Replace various multiplication symbols
         expression = expression.replace('x', '*')
         expression = expression.replace('×', '*')
@@ -79,9 +93,6 @@ class Calculator:
         expression = expression.replace('sinh⁻¹', 'asinh')
         expression = expression.replace('cosh⁻¹', 'acosh')
         expression = expression.replace('tanh⁻¹', 'atanh')
-        
-        # Handle logarithms with subscripts - match the full function call
-        expression = re.sub(r'log₂\s*\((.*?)\)', r'log2(\1)', expression)
         
         # Handle exponents
         expression = expression.replace('^', '**')
@@ -120,25 +131,29 @@ class Calculator:
         
         # Handle percentage
         if '%' in expression:
-            # First convert standalone percentages to decimals
-            expression = re.sub(r'(\d+(?:\.\d+)?)\s*%(?!\s*of\s*\d)', r'\1/100', expression)
+            # First handle relative percentages (like 200+10%)
+            def handle_relative_percent(match):
+                base = float(match.group(1))
+                op = match.group(2)
+                percent = float(match.group(3))
+                amount = base * percent / 100
+                if op == '-':
+                    amount = -amount
+                return f"{base}{op}{amount}"
             
-            # Then handle relative percentages (like 200+10%)
-            if '+' in expression or '-' in expression:
-                parts = re.split(r'(\+|\-)', expression)
-                for i in range(1, len(parts), 2):  # Look at operators
-                    if i+1 < len(parts) and '%' in parts[i+1]:
-                        # Get base number and percentage
-                        base = float(parts[i-1])
-                        percent = float(parts[i+1].replace('%', ''))
-                        # Calculate the percentage of the base
-                        amount = base * percent / 100
-                        # Add or subtract based on operator
-                        if parts[i] == '+':
-                            parts[i+1] = str(amount)
-                        else:  # '-'
-                            parts[i+1] = str(-amount)
-                expression = ''.join(parts)
+            # Handle patterns like "200+10%" or "200-10%"
+            expression = re.sub(
+                r'(\d+(?:\.\d+)?)\s*([+\-])\s*(\d+(?:\.\d+)?)\s*%',
+                handle_relative_percent,
+                expression
+            )
+            
+            # Then handle any remaining standalone percentages (like 50%)
+            def handle_standalone_percent(match):
+                num = float(match.group(1))
+                return str(num / 100)
+            
+            expression = re.sub(r'(\d+(?:\.\d+)?)\s*%', handle_standalone_percent, expression)
             
         return expression
 
