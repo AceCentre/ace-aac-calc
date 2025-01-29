@@ -11,6 +11,8 @@ on:
 jobs:
   build:
     runs-on: windows-latest
+    env:
+      UV_PATH: C:\Users\runneradmin\.local\bin
     
     steps:
     - uses: actions/checkout@v4
@@ -20,9 +22,15 @@ jobs:
       with:
         python-version: '3.11'
         
-    - name: Install dependencies
+    - name: Install and setup uv
+      shell: pwsh
       run: |
         iwr https://astral.sh/uv/install.ps1 -useb | iex
+        echo "$env:UV_PATH" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+        
+    - name: Install dependencies
+      shell: pwsh
+      run: |
         uv pip install .[build]
         
     - name: Install NSIS
@@ -30,6 +38,7 @@ jobs:
         choco install nsis -y
         
     - name: Build executable
+      shell: pwsh
       run: |
         uv pip install pyinstaller
         uv run pyinstaller --name scicalc --onefile --noconsole --icon=resources/logo_44I_icon.ico --add-data "src/scicalc;scicalc" src/scicalc/cli.py
