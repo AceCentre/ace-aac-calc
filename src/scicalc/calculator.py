@@ -45,12 +45,24 @@ class Calculator:
         cleaned = cleaned.replace('÷', '/')
         cleaned = cleaned.replace('−', '-')
         cleaned = cleaned.replace('^', '**')
+        # Handle superscript numbers
+        cleaned = cleaned.replace('²', '**2')
+        cleaned = cleaned.replace('³', '**3')
+        # Handle roots
+        cleaned = cleaned.replace('∛', 'cbrt')
+        cleaned = cleaned.replace('√', 'sqrt')
+        # Handle inverse trig
+        cleaned = cleaned.replace('⁻¹', 'a')  # sin⁻¹ becomes asin
         
         return cleaned
 
     def evaluate(self, expression: str) -> float:
         # Store the original expression
         self._last_expression = expression
+        
+        # If expression contains equals sign, take the part after the last equals
+        if '=' in expression:
+            expression = expression.split('=')[-1].strip()
         
         # Clean and prepare the expression
         expression = self.clean_expression(expression)
@@ -115,6 +127,9 @@ class Calculator:
             raise ValueError(f"Invalid expression: {str(e)}")
 
     def _prepare_expression(self, expression: str) -> str:
+        # First clean the expression
+        expression = self.clean_expression(expression)
+        
         # First handle function calls to prevent interference
         def handle_function_call(match):
             func = match.group(1)
@@ -123,48 +138,49 @@ class Calculator:
             if func == 'log₂':
                 return f'log2({args})'
             return f'{func}({args})'
-            
-        expression = re.sub(r'(\w+₂?)\s*\(([^)]+)\)', handle_function_call, expression)
+        
+        # Handle function calls with proper parentheses
+        expression = re.sub(r'(\w+₂?)\s*\(([^)]*)\)?', r'\1(\2)', expression)
         
         # Replace various multiplication symbols
         expression = expression.replace('x', '*')
         expression = expression.replace('×', '*')
         
-        # Replace inverse trig functions
-        expression = expression.replace('sin⁻¹', 'asin')
-        expression = expression.replace('cos⁻¹', 'acos')
-        expression = expression.replace('tan⁻¹', 'atan')
-        expression = expression.replace('sinh⁻¹', 'asinh')
-        expression = expression.replace('cosh⁻¹', 'acosh')
-        expression = expression.replace('tanh⁻¹', 'atanh')
+        # Handle special functions and roots
+        expression = re.sub(r'∛(\d+)', r'cbrt(\1)', expression)
+        expression = re.sub(r'√(\d+)', r'sqrt(\1)', expression)
         
-        # Handle exponents
-        expression = expression.replace('^', '**')
+        # Handle superscript numbers
         expression = re.sub(r'(\d+)²', r'\1**2', expression)
         expression = re.sub(r'(\d+)³', r'\1**3', expression)
         
-        # Handle roots
-        expression = expression.replace('∛', 'cbrt(')
-        expression = expression.replace('√', 'sqrt(')
+        # Add missing closing brackets, but preserve the original count for each opening
+        stack = []
+        result = []
+        for char in expression:
+            if char == '(':
+                stack.append(len(result))
+            elif char == ')':
+                if stack:
+                    stack.pop()
+            result.append(char)
         
-        # Handle special functions
-        expression = expression.replace('EE', '*10**')
+        # Add missing closing brackets in reverse order
+        while stack:
+            pos = stack.pop()
+            result.append(')')
         
-        # Handle constants with implicit multiplication
-        expression = re.sub(r'(\d+)([πe])', r'\1*\2', expression)
-        expression = expression.replace('π', 'pi')
+        expression = ''.join(result)
         
-        # Add missing closing brackets
-        open_count = expression.count('(')
-        close_count = expression.count(')')
-        expression += ')' * (open_count - close_count)
-        
-        # Add implicit multiplication between parentheses
-        expression = re.sub(r'\)\s*\(', ')*(', expression)
-        
-        # Add implicit multiplication for numbers next to parentheses
+        # Add implicit multiplication
+        # Between number and parenthesis
         expression = re.sub(r'(\d+)(?=\()', r'\1*', expression)
-        expression = re.sub(r'\)(\d+)', r')*\1', expression)
+        # Between closing and opening parentheses
+        expression = re.sub(r'\)\(', ')*(', expression)
+        # Between number and constant
+        expression = re.sub(r'(\d+)([πe])', r'\1*\2', expression)
+        # Between parentheses groups
+        expression = re.sub(r'\)\s*(\d+)', r')*\1', expression)
         
         return expression
 
@@ -181,8 +197,6 @@ class Calculator:
                 op = match.group(2)
                 percent = float(match.group(3))
                 amount = base * percent / 100
-                if op == '-':
-                    amount = -amount
                 return f"{base}{op}{amount}"
             
             # Handle patterns like "200+10%" or "200-10%"
@@ -198,7 +212,7 @@ class Calculator:
                 return str(num / 100)
             
             expression = re.sub(r'(\d+(?:\.\d+)?)\s*%', handle_standalone_percent, expression)
-            
+        
         return expression
 
     def format_output(self, result: float, return_format: str = "answer") -> str:

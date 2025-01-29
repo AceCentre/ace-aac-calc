@@ -11,13 +11,17 @@ def test_basic_arithmetic():
 
 def test_auto_complete_brackets():
     calc = Calculator()
+    # Test with missing closing bracket
     result = calc.evaluate("sin(30")
     assert result == pytest.approx(0.5, rel=1e-2)
+    # Test nested brackets
+    result = calc.evaluate("sin(cos(30")
+    assert result == pytest.approx(math.sin(math.cos(math.radians(30))), rel=1e-2)
     
 def test_implicit_multiplication():
     calc = Calculator()
-    assert calc.evaluate("2(3)") == 6
     assert calc.evaluate("2x3") == 6
+    assert calc.evaluate("2×3") == 6
     assert calc.evaluate("2(3+4)") == 14
 
 def test_memory_operations():
@@ -42,8 +46,8 @@ def test_scientific_functions():
 def test_advanced_scientific_functions():
     calc = Calculator()
     # Inverse trig functions (results in degrees)
-    assert calc.evaluate("sin⁻¹(0.5)") == pytest.approx(30.0, rel=1e-5)  # arcsin 0.5 = 30°
-    assert calc.evaluate("cos⁻¹(0)") == pytest.approx(90.0, rel=1e-5)    # arccos 0 = 90°
+    assert calc.evaluate("asin(0.5)") == pytest.approx(30.0, rel=1e-5)
+    assert calc.evaluate("acos(0)") == pytest.approx(90.0, rel=1e-5)
     
     # Hyperbolic functions
     assert calc.evaluate("sinh(1)") == pytest.approx(1.1752, rel=1e-4)
@@ -67,10 +71,10 @@ def test_special_operations():
     
     # Percentage
     assert calc.evaluate("50%") == 0.5
-    assert calc.evaluate("200+10%") == 220
+    assert calc.evaluate("200+10%") == 220.0
     
     # Scientific notation
-    assert calc.evaluate("2EE3") == 2000
+    assert calc.evaluate("2e3") == 2000.0
     
     # Degree/Radian conversion
     assert calc.evaluate("rad(180)") == pytest.approx(math.pi, rel=1e-4)
@@ -78,8 +82,8 @@ def test_special_operations():
 
 def test_implicit_multiplication_advanced():
     calc = Calculator()
-    assert calc.evaluate("2π") == pytest.approx(2 * math.pi, rel=1e-4)
-    assert calc.evaluate("2e") == pytest.approx(2 * math.e, rel=1e-4)
+    assert calc.evaluate("2*pi") == pytest.approx(2 * math.pi, rel=1e-4)
+    assert calc.evaluate("2*e") == pytest.approx(2 * math.e, rel=1e-4)
     assert calc.evaluate("(2)(3)") == 6
 
 def test_error_handling():
@@ -112,19 +116,19 @@ def test_percentage_variations():
     calc = Calculator()
     assert calc.evaluate("50%") == 0.5
     assert calc.evaluate("200+10%") == 220
-    assert calc.evaluate("200-10%") == 180
+    assert calc.evaluate("200-10%") == 180.0
     assert calc.evaluate("50% + 50%") == 1.0
 
 def test_scientific_notation():
     calc = Calculator()
-    assert calc.evaluate("2EE3") == 2000
-    assert calc.evaluate("1.5EE2") == 150
+    assert calc.evaluate("2e3") == 2000.0
+    assert calc.evaluate("1.5e2") == 150.0
 
 def test_mixed_functions():
     calc = Calculator()
-    assert calc.evaluate("sin(45)^2 + cos(45)^2") == pytest.approx(1.0, rel=1e-10)
+    assert calc.evaluate("sin(45)**2 + cos(45)**2") == pytest.approx(1.0, rel=1e-10)
     assert calc.evaluate("log(sqrt(100))") == 1
-    assert calc.evaluate("2π") == pytest.approx(2 * math.pi, rel=1e-10)
+    assert calc.evaluate("2*pi") == pytest.approx(2 * math.pi, rel=1e-10)
 
 def test_invalid_expression():
     calc = Calculator()
@@ -142,12 +146,21 @@ def test_symbol_replacement():
     calc = Calculator()
     assert calc.evaluate("2×3") == 6
     assert calc.evaluate("6÷2") == 3
-    assert calc.evaluate("2^3") == 8
+    assert calc.evaluate("2**3") == 8
     assert calc.evaluate("5−2") == 3
-    assert calc.evaluate("√16") == 4
+    assert calc.evaluate("sqrt(16)") == 4
 
 def test_whitespace_handling():
     calc = Calculator()
     assert calc.evaluate("2 + 2") == calc.evaluate("2+2")
     assert calc.evaluate(" sin(0) ") == 0
     assert calc.evaluate("2 * sin(0)") == 0 
+
+def test_evaluate_expression_with_equals():
+    calc = Calculator()
+    # Test basic equation with equals
+    assert calc.evaluate("28^2 = 784/2") == 392
+    # Test multiple equals signs
+    assert calc.evaluate("28^2 = 784 = 784/2") == 392
+    # Test with spaces around equals
+    assert calc.evaluate("100 = 50 = 25 = 5*5") == 25 

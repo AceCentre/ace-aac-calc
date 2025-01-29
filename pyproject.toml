@@ -31,4 +31,5 @@ python_files = ["test_*.py"]
 addopts = "-v --cov=src/scicalc --cov-report=term-missing"
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/scicalc"] 
+packages = ["src/scicalc"]
+package-data = {"scicalc" = ["py.typed"]} 
