@@ -2,6 +2,7 @@
 
 Name "Scientific Calculator"
 OutFile "ScientificCalculator-Setup.exe"
+RequestExecutionLevel user
 InstallDir "$LOCALAPPDATA\AAC Tools\Scientific Calculator"
 
 !define MUI_ICON "..\dist\logo_44I_icon.ico"
