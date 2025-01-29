@@ -2,7 +2,7 @@
 
 Name "Scientific Calculator"
 OutFile "ScientificCalculator-Setup.exe"
-InstallDir "$PROGRAMFILES\Ace Centre\Scientific Calculator"
+InstallDir "$PROGRAMFILES\AAC Tools\Scientific Calculator"
 
 !define MUI_ICON "..\dist\logo_44I_icon.ico"
 !define MUI_UNICON "..\dist\logo_44I_icon.ico"
@@ -25,12 +25,12 @@ Section "Install"
   File "..\dist\logo_44I_icon.ico"
   
   # Create Start Menu shortcuts
-  CreateDirectory "$SMPROGRAMS\Ace Centre\Scientific Calculator"
-  CreateShortcut "$SMPROGRAMS\Ace Centre\Scientific Calculator\Scientific Calculator.lnk" "$INSTDIR\scicalc.exe" "" "$INSTDIR\logo_44I_icon.ico"
-  CreateShortcut "$SMPROGRAMS\Ace Centre\Scientific Calculator\Calculator Watch Mode.lnk" "$INSTDIR\scicalc.exe" "--readpasteboard" "$INSTDIR\logo_44I_icon.ico"
+  CreateDirectory "$SMPROGRAMS\AAC Tools\Scientific Calculator"
+  CreateShortcut "$SMPROGRAMS\AAC Tools\Scientific Calculator\Scientific Calculator.lnk" "$INSTDIR\scicalc.exe" "" "$INSTDIR\logo_44I_icon.ico"
+  CreateShortcut "$SMPROGRAMS\AAC Tools\Scientific Calculator\Calculator Watch Mode.lnk" "$INSTDIR\scicalc.exe" "--readpasteboard" "$INSTDIR\logo_44I_icon.ico"
   
   # Create Desktop shortcuts
-  CreateShortcut "$DESKTOP\Ace Centre Scientific Calculator.lnk" "$INSTDIR\scicalc.exe" "" "$INSTDIR\logo_44I_icon.ico"
+  CreateShortcut "$DESKTOP\AAC Tools Scientific Calculator.lnk" "$INSTDIR\scicalc.exe" "" "$INSTDIR\logo_44I_icon.ico"
   
   # Create uninstaller
   WriteUninstaller "$INSTDIR\Uninstall.exe"
@@ -44,18 +44,18 @@ SectionEnd
 
 Section "Uninstall"
   # Remove shortcuts
-  Delete "$DESKTOP\Ace Centre Scientific Calculator.lnk"
-  Delete "$SMPROGRAMS\Ace Centre\Scientific Calculator\Scientific Calculator.lnk"
-  Delete "$SMPROGRAMS\Ace Centre\Scientific Calculator\Calculator Watch Mode.lnk"
-  RMDir "$SMPROGRAMS\Ace Centre\Scientific Calculator"
-  RMDir "$SMPROGRAMS\Ace Centre"
+  Delete "$DESKTOP\AAC Tools Scientific Calculator.lnk"
+  Delete "$SMPROGRAMS\AAC Tools\Scientific Calculator\Scientific Calculator.lnk"
+  Delete "$SMPROGRAMS\AAC Tools\Scientific Calculator\Calculator Watch Mode.lnk"
+  RMDir "$SMPROGRAMS\AAC Tools\Scientific Calculator"
+  RMDir "$SMPROGRAMS\AAC Tools"
   
   # Remove program files
   Delete "$INSTDIR\scicalc.exe"
   Delete "$INSTDIR\logo_44I_icon.ico"
   Delete "$INSTDIR\Uninstall.exe"
   RMDir "$INSTDIR"
-  RMDir "$PROGRAMFILES\Ace Centre"
+  RMDir "$PROGRAMFILES\AAC Tools"
   
   # Remove registry entries
   DeleteRegKey HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\ScientificCalculator"

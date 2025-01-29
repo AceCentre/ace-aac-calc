@@ -42,15 +42,6 @@ jobs:
       shell: pwsh
       run: |
         choco install nsis -y
-        # Download and install EnVar plugin
-        $pluginUrl = "https://nsis.sourceforge.io/mediawiki/images/7/7f/EnVar_plugin.zip"
-        $pluginPath = "EnVar_plugin.zip"
-        Invoke-WebRequest -Uri $pluginUrl -OutFile $pluginPath
-        Expand-Archive $pluginPath -DestinationPath "C:\Program Files (x86)\NSIS\Plugins\x86-unicode" -Force
-        # Verify plugin installation
-        if (-not (Test-Path "C:\Program Files (x86)\NSIS\Plugins\x86-unicode\EnVar.dll")) {
-          throw "Failed to install EnVar plugin"
-        }
         
     - name: Build executable
       shell: pwsh
