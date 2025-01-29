@@ -7,10 +7,29 @@ import sys
 
 def setup_logging():
     """Setup logging to both file and console"""
-    log_dir = os.path.join(os.path.dirname(os.path.abspath(sys.argv[0])), 'logs')
+    # Get script location
+    if getattr(sys, 'frozen', False):
+        # PyInstaller executable
+        script_dir = os.path.join(os.getenv('LOCALAPPDATA'), 'AAC Tools', 'Scientific Calculator')
+    else:
+        # Running from source
+        script_dir = os.path.dirname(os.path.abspath(__file__))
+    
+    log_dir = os.path.join(script_dir, 'logs')
     os.makedirs(log_dir, exist_ok=True)
     log_file = os.path.join(log_dir, 'scicalc.log')
     
+    # Ensure we can write to the log file
+    try:
+        with open(log_file, 'a') as f:
+            pass
+    except:
+        # Fall back to temp directory if we can't write to preferred location
+        import tempfile
+        log_dir = os.path.join(tempfile.gettempdir(), 'AAC Tools', 'Scientific Calculator', 'logs')
+        os.makedirs(log_dir, exist_ok=True)
+        log_file = os.path.join(log_dir, 'scicalc.log')
+
     logging.basicConfig(
         level=logging.DEBUG,
         format='%(asctime)s - %(levelname)s - %(message)s',
@@ -19,6 +38,7 @@ def setup_logging():
             logging.StreamHandler()
         ]
     )
+    logging.info(f"Logging to: {log_file}")
 
 @click.command()
 @click.argument('expression', required=False)

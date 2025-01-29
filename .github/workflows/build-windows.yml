@@ -49,7 +49,7 @@ jobs:
         $env:Path = "$env:UV_PATH;$env:Path"
         .\.venv\Scripts\Activate.ps1
         uv pip install pyinstaller
-        uv run pyinstaller --name scicalc --onefile --icon=resources/logo_44I_icon.ico src/scicalc/cli.py --collect-submodules scicalc
+        uv run pyinstaller --name scicalc --onefile --icon=resources/logo_44I_icon.ico src/scicalc/cli.py --collect-submodules scicalc --add-data "resources;resources"
         # Verify the executable was created
         if (-not (Test-Path "dist\scicalc.exe")) {
           throw "Failed to create executable"
