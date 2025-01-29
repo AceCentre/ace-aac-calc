@@ -1,5 +1,5 @@
 import click
-from .calculator import Calculator
+from scicalc.calculator import Calculator
 import pyperclip
 
 @click.command()
