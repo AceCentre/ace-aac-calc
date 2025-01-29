@@ -55,6 +55,12 @@ jobs:
           throw "Failed to create executable"
         }
         
+    - name: Upload PyInstaller executable
+      uses: actions/upload-artifact@v4
+      with:
+        name: pyinstaller-exe
+        path: dist/scicalc.exe
+        
     - name: Build Installer
       shell: pwsh
       run: |
@@ -88,7 +94,7 @@ jobs:
     - name: Upload artifact
       uses: actions/upload-artifact@v4
       with:
-        name: windows-installer
+        name: nsis-installer
         path: ScientificCalculator-Setup.exe
         
     - name: Upload to release
@@ -97,4 +103,6 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       uses: softprops/action-gh-release@v1
       with:
-        files: ScientificCalculator-Setup.exe
+        files: |
+          ScientificCalculator-Setup.exe
+          dist/scicalc.exe
