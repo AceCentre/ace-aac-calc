@@ -126,4 +126,14 @@ def main(expression, readpasteboard, readpasteboard_once, output_to_pasteboard, 
         
     except ValueError as e:
         logging.error(f"Error evaluating expression: {str(e)}")
-        raise click.UsageError(str(e)) 
+        raise click.UsageError(str(e))
+
+if __name__ == '__main__':
+    try:
+        main()
+    except Exception as e:
+        import traceback
+        with open('error.log', 'w') as f:
+            f.write(f"Error: {str(e)}\n")
+            f.write(traceback.format_exc())
+        raise 
