@@ -7,38 +7,62 @@ import sys
 
 def setup_logging():
     """Setup logging to both file and console"""
+    print("Setting up logging...")  # Direct console output for debugging
+    
     # Get script location
     if getattr(sys, 'frozen', False):
         # PyInstaller executable
+        print(f"Running as PyInstaller executable: {sys.executable}")
         script_dir = os.path.join(os.getenv('LOCALAPPDATA'), 'AAC Tools', 'Scientific Calculator')
     else:
         # Running from source
+        print("Running from source")
         script_dir = os.path.dirname(os.path.abspath(__file__))
     
+    print(f"Script directory: {script_dir}")
     log_dir = os.path.join(script_dir, 'logs')
-    os.makedirs(log_dir, exist_ok=True)
-    log_file = os.path.join(log_dir, 'scicalc.log')
+    print(f"Log directory: {log_dir}")
     
-    # Ensure we can write to the log file
     try:
-        with open(log_file, 'a') as f:
-            pass
-    except:
-        # Fall back to temp directory if we can't write to preferred location
-        import tempfile
-        log_dir = os.path.join(tempfile.gettempdir(), 'AAC Tools', 'Scientific Calculator', 'logs')
         os.makedirs(log_dir, exist_ok=True)
         log_file = os.path.join(log_dir, 'scicalc.log')
-
-    logging.basicConfig(
-        level=logging.DEBUG,
-        format='%(asctime)s - %(levelname)s - %(message)s',
-        handlers=[
-            logging.FileHandler(log_file),
-            logging.StreamHandler()
-        ]
-    )
-    logging.info(f"Logging to: {log_file}")
+        print(f"Attempting to write to log file: {log_file}")
+        
+        # Test write access
+        with open(log_file, 'a') as f:
+            f.write("Log file initialized\n")
+        
+        logging.basicConfig(
+            level=logging.DEBUG,
+            format='%(asctime)s - %(levelname)s - %(message)s',
+            handlers=[
+                logging.FileHandler(log_file),
+                logging.StreamHandler(sys.stdout)  # Explicitly use stdout
+            ]
+        )
+        print("Logging setup complete")
+        logging.info(f"Logging to: {log_file}")
+        
+    except Exception as e:
+        print(f"Error setting up logging: {str(e)}")
+        # Fall back to temp directory if we can't write to preferred location
+        import tempfile
+        temp_dir = tempfile.gettempdir()
+        print(f"Falling back to temp directory: {temp_dir}")
+        log_dir = os.path.join(temp_dir, 'AAC Tools', 'Scientific Calculator', 'logs')
+        os.makedirs(log_dir, exist_ok=True)
+        log_file = os.path.join(log_dir, 'scicalc.log')
+        
+        logging.basicConfig(
+            level=logging.DEBUG,
+            format='%(asctime)s - %(levelname)s - %(message)s',
+            handlers=[
+                logging.FileHandler(log_file),
+                logging.StreamHandler(sys.stdout)  # Explicitly use stdout
+            ]
+        )
+        print(f"Logging setup complete (using temp directory)")
+        logging.info(f"Logging to: {log_file}")
 
 @click.command()
 @click.argument('expression', required=False)

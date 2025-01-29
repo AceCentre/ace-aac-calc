@@ -22,8 +22,8 @@ InstallDir "$LOCALAPPDATA\AAC Tools\Scientific Calculator"
 
 Section "Install"
   SetOutPath "$INSTDIR"
-  File "..\dist\scicalc.exe"
-  File "..\dist\logo_44I_icon.ico"
+  File /r "..\dist\scicalc\*.*"
+  File "..\resources\logo_44I_icon.ico"
   
   SetShellVarContext current
   

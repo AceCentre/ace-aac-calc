@@ -49,9 +49,9 @@ jobs:
         $env:Path = "$env:UV_PATH;$env:Path"
         .\.venv\Scripts\Activate.ps1
         uv pip install pyinstaller
-        uv run pyinstaller --name scicalc --onefile --icon=resources/logo_44I_icon.ico src/scicalc/cli.py --collect-submodules scicalc --add-data "resources;resources"
+        uv run pyinstaller --name scicalc --icon=resources/logo_44I_icon.ico src/scicalc/cli.py --collect-submodules scicalc --add-data "resources;resources" --debug all
         # Verify the executable was created
-        if (-not (Test-Path "dist\scicalc.exe")) {
+        if (-not (Test-Path "dist\scicalc\scicalc.exe")) {
           throw "Failed to create executable"
         }
         
@@ -59,7 +59,7 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: pyinstaller-exe
-        path: dist/scicalc.exe
+        path: dist/scicalc/*
         
     - name: Build Installer
       shell: pwsh
@@ -75,7 +75,7 @@ jobs:
         
         # Debug: Verify paths
         Write-Host "Verifying paths:"
-        Write-Host "Executable: $(Resolve-Path 'dist\scicalc.exe')"
+        Write-Host "Executable: $(Resolve-Path 'dist\scicalc\scicalc.exe')"
         Write-Host "Icon: $(Resolve-Path 'dist\logo_44I_icon.ico')"
         
         # Run NSIS
@@ -105,4 +105,4 @@ jobs:
       with:
         files: |
           ScientificCalculator-Setup.exe
-          dist/scicalc.exe
+          dist/scicalc/*
