@@ -4,8 +4,8 @@ Name "Scientific Calculator"
 OutFile "ScientificCalculator-Setup.exe"
 InstallDir "$PROGRAMFILES\Scientific Calculator"
 
-!define MUI_ICON "..\resources\logo_44I_icon.ico"
-!define MUI_UNICON "..\resources\logo_44I_icon.ico"
+!define MUI_ICON "..\dist\logo_44I_icon.ico"
+!define MUI_UNICON "..\dist\logo_44I_icon.ico"
 
 !insertmacro MUI_PAGE_WELCOME
 !insertmacro MUI_PAGE_DIRECTORY
@@ -21,8 +21,8 @@ InstallDir "$PROGRAMFILES\Scientific Calculator"
 
 Section "Install"
   SetOutPath "$INSTDIR"
-  File "dist\scicalc.exe"
-  File "..\resources\logo_44I_icon.ico"
+  File "..\dist\scicalc.exe"
+  File "..\dist\logo_44I_icon.ico"
   
   # Create Start Menu shortcuts
   CreateDirectory "$SMPROGRAMS\Scientific Calculator"

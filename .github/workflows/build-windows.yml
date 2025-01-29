@@ -64,15 +64,17 @@ jobs:
         Get-ChildItem -Path dist
         
         # Copy icon to dist directory
-        Copy-Item "resources\logo_44I_icon.ico" -Destination "D:\a\scicalccli\scicalccli\dist\"
+        Copy-Item "resources\logo_44I_icon.ico" -Destination "dist\"
         
         # Debug: Verify paths
         Write-Host "Verifying paths:"
-        Write-Host "Executable: D:\a\scicalccli\scicalccli\dist\scicalc.exe"
-        Write-Host "Icon: D:\a\scicalccli\scicalccli\dist\logo_44I_icon.ico"
+        Write-Host "Executable: $(Resolve-Path 'dist\scicalc.exe')"
+        Write-Host "Icon: $(Resolve-Path 'dist\logo_44I_icon.ico')"
         
         # Run NSIS
-        & 'C:\Program Files (x86)\NSIS\makensis.exe' scripts/windows-installer.nsi
+        Push-Location scripts
+        & 'C:\Program Files (x86)\NSIS\makensis.exe' windows-installer.nsi
+        Pop-Location
         # Verify installer was created
         if (-not (Test-Path "ScientificCalculator-Setup.exe")) {
           throw "Failed to create installer"
