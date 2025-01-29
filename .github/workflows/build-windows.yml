@@ -57,8 +57,20 @@ jobs:
     - name: Build Installer
       shell: pwsh
       run: |
+        # Debug: List contents of current and dist directories
+        Write-Host "Current directory contents:"
+        Get-ChildItem -Path .
+        Write-Host "Dist directory contents:"
+        Get-ChildItem -Path dist
+        
         # Copy icon to dist directory
-        Copy-Item "resources\logo_44I_icon.ico" -Destination "dist\"
+        Copy-Item "resources\logo_44I_icon.ico" -Destination "D:\a\scicalccli\scicalccli\dist\"
+        
+        # Debug: Verify paths
+        Write-Host "Verifying paths:"
+        Write-Host "Executable: D:\a\scicalccli\scicalccli\dist\scicalc.exe"
+        Write-Host "Icon: D:\a\scicalccli\scicalccli\dist\logo_44I_icon.ico"
+        
         # Run NSIS
         & 'C:\Program Files (x86)\NSIS\makensis.exe' scripts/windows-installer.nsi
         # Verify installer was created
