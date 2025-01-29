@@ -76,6 +76,10 @@ jobs:
         Push-Location scripts
         & 'C:\Program Files (x86)\NSIS\makensis.exe' windows-installer.nsi
         Pop-Location
+        
+        # Move installer from scripts to root directory
+        Move-Item -Path "scripts\ScientificCalculator-Setup.exe" -Destination "ScientificCalculator-Setup.exe"
+        
         # Verify installer was created
         if (-not (Test-Path "ScientificCalculator-Setup.exe")) {
           throw "Failed to create installer"
