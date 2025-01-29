@@ -124,4 +124,30 @@ def test_mixed_functions():
     calc = Calculator()
     assert calc.evaluate("sin(45)^2 + cos(45)^2") == pytest.approx(1.0, rel=1e-10)
     assert calc.evaluate("log(sqrt(100))") == 1
-    assert calc.evaluate("2π") == pytest.approx(2 * math.pi, rel=1e-10) 
+    assert calc.evaluate("2π") == pytest.approx(2 * math.pi, rel=1e-10)
+
+def test_invalid_expression():
+    calc = Calculator()
+    with pytest.raises(ValueError):
+        calc.evaluate("invalid")
+
+def test_case_insensitive_functions():
+    calc = Calculator()
+    assert calc.evaluate("Sin(0)") == 0
+    assert calc.evaluate("COS(0)") == 1
+    assert calc.evaluate("SQRT(16)") == 4
+    assert calc.evaluate("PI") == math.pi
+
+def test_symbol_replacement():
+    calc = Calculator()
+    assert calc.evaluate("2×3") == 6
+    assert calc.evaluate("6÷2") == 3
+    assert calc.evaluate("2^3") == 8
+    assert calc.evaluate("5−2") == 3
+    assert calc.evaluate("√16") == 4
+
+def test_whitespace_handling():
+    calc = Calculator()
+    assert calc.evaluate("2 + 2") == calc.evaluate("2+2")
+    assert calc.evaluate(" sin(0) ") == 0
+    assert calc.evaluate("2 * sin(0)") == 0 

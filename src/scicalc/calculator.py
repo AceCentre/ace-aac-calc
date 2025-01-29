@@ -11,12 +11,49 @@ class Calculator:
         self._last_expression = None
         self._last_pasteboard = None
 
+    # Dictionary of function name mappings (case-insensitive)
+    FUNCTION_ALIASES = {
+        'cos': 'cos', 'COS': 'cos', 'Cos': 'cos',
+        'sin': 'sin', 'SIN': 'sin', 'Sin': 'sin',
+        'tan': 'tan', 'TAN': 'tan', 'Tan': 'tan',
+        'acos': 'acos', 'ACOS': 'acos', 'Acos': 'acos',
+        'asin': 'asin', 'ASIN': 'asin', 'Asin': 'asin',
+        'atan': 'atan', 'ATAN': 'atan', 'Atan': 'atan',
+        'sqrt': 'sqrt', 'SQRT': 'sqrt', 'Sqrt': 'sqrt', '√': 'sqrt',
+        'log': 'log', 'LOG': 'log', 'Log': 'log',
+        'ln': 'ln', 'LN': 'ln', 'Ln': 'ln',
+        'exp': 'exp', 'EXP': 'exp', 'Exp': 'exp',
+        'pi': 'pi', 'PI': 'pi', 'Pi': 'pi', 'π': 'pi',
+    }
+
+    def clean_expression(self, expression):
+        """Clean and normalize the input expression."""
+        if not expression:
+            return expression
+        
+        # Replace function names with their canonical forms
+        cleaned = expression
+        for alias, canonical in self.FUNCTION_ALIASES.items():
+            # Use word boundaries to avoid partial replacements
+            cleaned = re.sub(rf'\b{alias}\b', canonical, cleaned)
+        
+        # Remove extra whitespace
+        cleaned = ' '.join(cleaned.split())
+        
+        # Replace common symbols
+        cleaned = cleaned.replace('×', '*')
+        cleaned = cleaned.replace('÷', '/')
+        cleaned = cleaned.replace('−', '-')
+        cleaned = cleaned.replace('^', '**')
+        
+        return cleaned
+
     def evaluate(self, expression: str) -> float:
         # Store the original expression
         self._last_expression = expression
         
         # Clean and prepare the expression
-        expression = self._prepare_expression(expression)
+        expression = self.clean_expression(expression)
         
         try:
             # Create a safe dictionary of allowed functions
