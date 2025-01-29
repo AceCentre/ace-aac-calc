@@ -49,10 +49,22 @@ jobs:
         .\.venv\Scripts\Activate.ps1
         uv pip install pyinstaller
         uv run pyinstaller --name scicalc --onefile --noconsole --icon=resources/logo_44I_icon.ico --add-data "src/scicalc;scicalc" src/scicalc/cli.py
+        # Verify the executable was created
+        if (-not (Test-Path "dist\scicalc.exe")) {
+          throw "Failed to create executable"
+        }
         
     - name: Build Installer
+      shell: pwsh
       run: |
+        # Copy icon to dist directory
+        Copy-Item "resources\logo_44I_icon.ico" -Destination "dist\"
+        # Run NSIS
         & 'C:\Program Files (x86)\NSIS\makensis.exe' scripts/windows-installer.nsi
+        # Verify installer was created
+        if (-not (Test-Path "ScientificCalculator-Setup.exe")) {
+          throw "Failed to create installer"
+        }
         
     - name: Upload artifact
       uses: actions/upload-artifact@v4
