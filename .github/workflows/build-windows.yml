@@ -50,4 +50,4 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       uses: softprops/action-gh-release@v1
       with:
-        files: ScientificCalculator-Setup.exe 
+        files: ScientificCalculator-Setup.exe
