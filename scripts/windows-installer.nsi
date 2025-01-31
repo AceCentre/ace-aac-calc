@@ -23,6 +23,7 @@ InstallDir "$LOCALAPPDATA\AAC Tools\Scientific Calculator"
 Section "Install"
   SetOutPath "$INSTDIR"
   File /r "..\dist\scicalc\*.*"
+  File /r "..\dist\calcweb\*.*"
   File "..\resources\logo_44I_icon.ico"
   
   SetShellVarContext current
@@ -30,8 +31,10 @@ Section "Install"
   CreateDirectory "$SMPROGRAMS\AAC Tools\Scientific Calculator"
   CreateShortcut "$SMPROGRAMS\AAC Tools\Scientific Calculator\Scientific Calculator.lnk" "$INSTDIR\scicalc.exe" "" "$INSTDIR\logo_44I_icon.ico"
   CreateShortcut "$SMPROGRAMS\AAC Tools\Scientific Calculator\Calculator Watch Mode.lnk" "$INSTDIR\scicalc.exe" "--readpasteboard" "$INSTDIR\logo_44I_icon.ico"
+  CreateShortcut "$SMPROGRAMS\AAC Tools\Scientific Calculator\Calculator Web Interface.lnk" "$INSTDIR\calcweb.exe" "" "$INSTDIR\logo_44I_icon.ico"
   
   CreateShortcut "$DESKTOP\AAC Tools Scientific Calculator.lnk" "$INSTDIR\scicalc.exe" "" "$INSTDIR\logo_44I_icon.ico"
+  CreateShortcut "$DESKTOP\AAC Tools Calculator Web.lnk" "$INSTDIR\calcweb.exe" "" "$INSTDIR\logo_44I_icon.ico"
   
   WriteUninstaller "$INSTDIR\Uninstall.exe"
   
@@ -45,12 +48,15 @@ Section "Uninstall"
   SetShellVarContext current
 
   Delete "$DESKTOP\AAC Tools Scientific Calculator.lnk"
+  Delete "$DESKTOP\AAC Tools Calculator Web.lnk"
   Delete "$SMPROGRAMS\AAC Tools\Scientific Calculator\Scientific Calculator.lnk"
   Delete "$SMPROGRAMS\AAC Tools\Scientific Calculator\Calculator Watch Mode.lnk"
+  Delete "$SMPROGRAMS\AAC Tools\Scientific Calculator\Calculator Web Interface.lnk"
   RMDir "$SMPROGRAMS\AAC Tools\Scientific Calculator"
   RMDir "$SMPROGRAMS\AAC Tools"
   
   Delete "$INSTDIR\scicalc.exe"
+  Delete "$INSTDIR\calcweb.exe"
   Delete "$INSTDIR\logo_44I_icon.ico"
   Delete "$INSTDIR\Uninstall.exe"
   RMDir "$INSTDIR"

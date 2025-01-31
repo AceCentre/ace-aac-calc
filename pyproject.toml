@@ -10,11 +10,13 @@ requires-python = ">=3.8"
 dependencies = [
     "click>=8.0.0",
     "pyperclip>=1.8.2",
-    "numpy>=1.21.0"
+    "numpy>=1.21.0",
+    "flask>=2.0.0"
 ]
 
 [project.scripts]
 scicalc = "scicalc.cli:main"
+calcweb = "scicalc.web:main"
 
 [project.optional-dependencies]
 test = [
@@ -32,4 +34,4 @@ addopts = "-v --cov=src/scicalc --cov-report=term-missing"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/scicalc"]
-package-data = {"scicalc" = ["py.typed"]} 
+package-data = {"scicalc" = ["py.typed", "templates/*"]} 

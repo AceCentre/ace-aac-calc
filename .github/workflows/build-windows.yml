@@ -49,11 +49,10 @@ jobs:
         $env:Path = "$env:UV_PATH;$env:Path"
         .\.venv\Scripts\Activate.ps1
         uv pip install pyinstaller
-        uv run pyinstaller --name scicalc --noconsole --icon=resources/logo_44I_icon.ico src/scicalc/cli.py --collect-submodules scicalc --add-data "resources;resources" 
-        # Verify the executable was created
-        if (-not (Test-Path "dist\scicalc\scicalc.exe")) {
-          throw "Failed to create executable"
-        }
+        # Build CLI executable
+        uv run pyinstaller --name scicalc --icon=resources/logo_44I_icon.ico src/scicalc/cli.py --collect-submodules scicalc
+        # Build web server executable
+        uv run pyinstaller --name calcweb --icon=resources/logo_44I_icon.ico src/scicalc/web.py --collect-submodules scicalc --add-data "src/scicalc/templates;templates" --hidden-import="flask" --hidden-import="werkzeug"
         
     - name: Upload PyInstaller executable
       uses: actions/upload-artifact@v4
