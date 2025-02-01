@@ -72,6 +72,9 @@ class Calculator:
         if not expression:
             return expression
         
+        # Debug print for bracket handling
+        print(f"Input: {expression}")
+        
         # First handle root functions before other replacements
         cleaned = expression
         cleaned = re.sub(r'∜\s*(\d+|\([^)]+\))', r'root4(\1)', cleaned)  # Fourth root
@@ -91,7 +94,7 @@ class Calculator:
             return f"logbase({match.group(2)}, {base})"
         cleaned = re.sub(r'log([₀₁₂₃₄₅₆₇₈₉]+)\((.+?)\)', replace_subscript, cleaned)
         
-        # First handle scientific notation before other replacements
+        # Handle scientific notation before other replacements
         def handle_scientific(match):
             num, exp = match.groups()
             return f"{num}*10**{exp}"
@@ -103,6 +106,7 @@ class Calculator:
         if open_count > close_count:
             # Simply add missing closing parentheses at the end
             cleaned += ')' * (open_count - close_count)
+            print(f"After bracket completion: {cleaned}")
         
         # Handle special cases first before any other processing
         if cleaned.strip() == '1/x':

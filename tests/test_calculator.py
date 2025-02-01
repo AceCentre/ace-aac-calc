@@ -14,9 +14,14 @@ def test_auto_complete_brackets():
     # Test with missing closing bracket
     result = calc.evaluate("sin(30")
     assert result == pytest.approx(0.5, abs=1e-2)  # sin(30°) = 0.5
+    
     # Test nested brackets
     result = calc.evaluate("sin(cos(30")
-    assert result == pytest.approx(math.sin(math.cos(math.radians(30))), rel=1e-2)
+    # Calculator uses degrees for both sin and cos
+    expected = math.sin(math.radians(math.cos(math.radians(30))))
+    print(f"Expected: {expected}")
+    print(f"Got: {result}")
+    assert result == pytest.approx(expected, rel=1e-2)
     
 def test_implicit_multiplication():
     calc = Calculator()
