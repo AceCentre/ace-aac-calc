@@ -34,8 +34,8 @@ if getattr(sys, 'frozen', False):
     template_dir = os.path.join(sys._MEIPASS, 'templates')
 else:
     # Running from source
-    # Use the project root templates directory
-    template_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), 'templates')
+    # Use the package's template directory
+    template_dir = os.path.join(os.path.dirname(__file__), 'templates')
 
 logging.info(f"Final template directory: {template_dir}")
 if not os.path.exists(template_dir):
