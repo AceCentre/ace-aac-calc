@@ -185,6 +185,34 @@
             margin-top: 10px;
             font-size: 18px;
         }
+        .fraction {
+            display: inline-block;
+            vertical-align: middle;
+            margin: 0 2px;
+            text-align: center;
+        }
+        .fraction > span {
+            display: block;
+            padding: 0.1em;
+        }
+        .fraction span.fup {
+            border-bottom: 1px solid;
+        }
+        .fraction span.bar {
+            display: none;
+        }
+        .fraction span.fdn {
+            border-top: 1px solid;
+        }
+        sup {
+            font-size: 0.7em;
+            position: relative;
+            top: -0.5em;
+            margin-left: 0.1em;
+        }
+        .history-entry {
+            font-family: "Cambria Math", "STIX", "STIX Two Text", "Times New Roman", serif;
+        }
     </style>
 </head>
 <body>
@@ -396,13 +424,14 @@
                 const data = await response.json();
                 if (data.success) {
                     // Show the result in grey after the equals sign
-                    const previewText = `${cleanExpression}=${data.result}`;
+                    const formattedExpression = formatFractions(cleanExpression);
+                    const previewText = `${formattedExpression}=${data.result}`;
                     expressionInput.value = cleanExpression;  // Original expression
                     const resultSpan = document.createElement('span');
-                    resultSpan.textContent = `=${data.result}`;
+                    resultSpan.innerHTML = `=${data.result}`;
                     resultSpan.style.color = '#999';
                     expressionInput.insertAdjacentElement('afterend', resultSpan);
-                    expressionInput.dataset.preview = previewText;  // Store full preview
+                    expressionInput.dataset.preview = previewText;
                 }
             } catch (error) {
                 console.error('Preview failed:', error);
@@ -535,14 +564,55 @@
             const historyDiv = document.getElementById('history');
             const entry = document.createElement('div');
             entry.className = 'history-entry';
+            
+            // Format the expression if it contains fractions
+            const formattedExpression = formatFractions(expression);
+            
             // Always show expression = result format
             if (expression.endsWith('=')) {
-                entry.textContent = `${expression}${result}`;
+                entry.innerHTML = `${formattedExpression}${result}`;
             } else {
-                entry.textContent = `${expression}=${result}`;
+                entry.innerHTML = `${formattedExpression}=${result}`;
             }
             historyDiv.appendChild(entry);
             historyDiv.scrollTop = historyDiv.scrollHeight;
+        }
+        
+        function formatFractions(text) {
+            // First format the fractions
+            let formattedText = text.replace(/(\d+)\/(\d+)/g, (match, numerator, denominator) => {
+                return `<span class="fraction">
+                    <span class="fup">${numerator}</span>
+                    <span class="bar">/</span>
+                    <span class="fdn">${denominator}</span>
+                </span>`;
+            });
+            
+            // Then replace other mathematical symbols
+            formattedText = formattedText
+                .replace(/\*/g, '×')  // Multiplication
+                .replace(/\//g, '÷')  // Division (when not in fractions)
+                .replace(/([0-9])\+/g, '$1 + ')  // Add spaces around operators
+                .replace(/([0-9])\-/g, '$1 - ')
+                .replace(/([0-9])\×/g, '$1 × ')
+                .replace(/([0-9])\÷/g, '$1 ÷ ')
+                .replace(/\bsqrt\b/g, '√')  // Square root
+                .replace(/\bpi\b/g, 'π')  // Pi
+                .replace(/\^2\b/g, '²')  // Squared
+                .replace(/\^3\b/g, '³')  // Cubed
+                .replace(/\^([0-9]+)/g, '<sup>$1</sup>')  // Other powers
+                .replace(/([0-9])²/g, '$1²')
+                .replace(/([0-9])³/g, '$1³')
+                .replace(/\be\b/g, 'ℯ')  // Euler's number
+                .replace(/\binfinity\b/g, '∞')  // Infinity
+                .replace(/\bdeg\b/g, '°')  // Degrees
+                .replace(/!==/g, '≢')  // Not identical to
+                .replace(/!=/g, '≠')  // Not equal to
+                .replace(/<=/g, '≤')  // Less than or equal to
+                .replace(/>=/g, '≥')  // Greater than or equal to
+                .replace(/==/g, '=');  // Equal to
+            
+            return formattedText;
         }
         
         async function calculate() {
