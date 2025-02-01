@@ -34,8 +34,8 @@ if getattr(sys, 'frozen', False):
     template_dir = os.path.join(sys._MEIPASS, 'templates')
 else:
     # Running from source
-    # When running as a module, use the package's template directory
-    template_dir = os.path.join(os.path.dirname(__file__), 'templates')
+    # Use the project root templates directory
+    template_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), 'templates')
 
 logging.info(f"Final template directory: {template_dir}")
 if not os.path.exists(template_dir):
@@ -51,6 +51,8 @@ if os.path.exists(template_dir):
 app = Flask(__name__)
 app.template_folder = os.path.abspath(template_dir)  # Use absolute path
 app.static_folder = os.path.abspath(template_dir)    # Use same directory for static files
+# Disable template caching
+app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0
 
 # Enable Flask debug logging
 logging.getLogger('flask').setLevel(logging.DEBUG)
@@ -70,13 +72,12 @@ def index():
         template_path = os.path.join(template_dir, 'calculator.html')
         logging.debug(f"Full template path: {template_path}")
         
-        # Read and log the file contents
-        with open(template_path, 'r') as f:
-            content = f.read()
-            logging.debug(f"File contents length: {len(content)}")
-            logging.debug(f"First 100 chars: {content[:100]}")
-        
-        return send_file(template_path)
+        response = send_file(template_path)
+        # Add cache control headers
+        response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
+        response.headers["Pragma"] = "no-cache"
+        response.headers["Expires"] = "0"
+        return response
     except Exception as e:
         logging.error(f"Error serving template: {str(e)}")
         logging.exception("Full traceback:")

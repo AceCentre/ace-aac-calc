@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Scientific Calculato BEEBP</title>
+    <style>
+        body {
+            font-family: "Palatino Linotype", "Book Antiqua", Palatino, serif;
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 20px;
+            font-size: 18px;
+        }
+        .calculator {
+            border: 1px solid #ccc;
+            padding: 20px;
+            border-radius: 5px;
+            display: flex;
+            flex-direction: column;
+            height: 90vh;  /* Take up most of viewport height */
+        }
+        .history {
+            flex-grow: 1;
+            overflow-y: auto;
+            margin-bottom: 20px;
+            padding: 10px;
+            background: #f9f9f9;
+            border-radius: 5px;
+            font-size: 24px;  /* Default size for history */
+        }
+        .history-entry {
+            padding: 8px 0;
+            border-bottom: 1px dotted #ccc;
+        }
+        .history-entry:last-child {
+            border-bottom: none;  /* No border for last entry */
+        }
+        .controls {
+            display: flex;
+            justify-content: space-between;  /* Memory buttons left, font controls right */
+            margin-bottom: 10px;
+            padding: 5px;
+            background: #f8f8f8;
+            border-radius: 4px;
+            transition: max-height 0.2s, opacity 0.2s;
+            max-height: 50px;
+            opacity: 1;
+            overflow: hidden;
+        }
+        .controls.collapsed {
+            max-height: 0;
+            opacity: 0;
+            margin: 0;
+            padding: 0;
+        }
+        .controls-wrapper {
+            margin-bottom: 10px;
+            position: relative;
+        }
+        .toggle-controls {
+            position: absolute;
+            right: 10px;
+            top: -20px;  /* Move above the controls */
+            cursor: pointer;
+            color: #666;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            user-select: none;
+        }
+        .toggle-controls .arrow {
+            display: inline-block;
+            transition: transform 0.2s;
+            font-size: 16px;
+            font-weight: bold;
+        }
+        .toggle-controls.collapsed .arrow {
+            transform: rotate(180deg);
+        }
+        .info-panel {
+            display: none;
+            padding: 10px;
+            background: #f8f8f8;
+            border-radius: 4px;
+            margin-bottom: 10px;
+        }
+        .info-panel.show {
+            display: block;
+        }
+        .info-panel h3 {
+            margin-top: 0;
+            color: #333;
+        }
+        .info-panel ul {
+            list-style: none;
+            padding-left: 0;
+            columns: 2;
+        }
+        .info-panel li {
+            margin-bottom: 5px;
+            color: #666;
+        }
+        .info-panel kbd {
+            background: #eee;
+            border: 1px solid #ccc;
+            border-radius: 3px;
+            padding: 2px 5px;
+            margin: 0 3px;
+        }
+        .font-controls {
+            display: flex;
+            gap: 5px;
+        }
+        .memory-controls {
+            display: flex;
+            gap: 5px;  /* Small gap between buttons */
+        }
+        .memory-controls button {
+            padding: 3px 8px;
+            font-size: 16px;
+            cursor: pointer;
+            background: #e8e8e8;
+            border: 1px solid #ccc;
+            border-radius: 3px;
+            flex: 0 0 auto;
+            min-width: 40px;
+        }
+        .font-controls button {
+            padding: 5px 10px;
+            margin-left: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            background: #fff;
+            border: 1px solid #ccc;
+            border-radius: 3px;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+        }
+        button:hover {
+            background: #f0f0f0;
+        }
+        .font-controls button span {
+            opacity: 0.7;
+            font-size: 12px;
+            margin-left: 5px;
+        }
+        input[type="text"] {
+            width: 100%;
+            padding: 10px;
+            margin-top: auto;
+            font-size: 24px;
+            font-family: inherit;
+        }
+        .input-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+        .input-wrapper span {
+            position: absolute;
+            right: 10px;
+            font-size: 24px;
+            pointer-events: none;
+        }
+        .result {
+            margin-top: 5px;
+            padding: 10px;
+            background-color: #f0f0f0;
+            font-size: 24px;
+            font-family: inherit;
+        }
+        .error {
+            color: red;
+            margin-top: 10px;
+            font-size: 18px;
+        }
+    </style>
+</head>
+<body>
+    <div class="calculator">
+        <div class="controls-wrapper">
+            <span class="toggle-controls" onclick="toggleControls()" title="Toggle Controls Panel">
+                <span class="arrow">−</span>
+            </span>
+            <div class="controls">
+                <div class="memory-controls">
+                    <button onclick="memoryRecall()" title="Memory Recall">MR</button>
+                    <button onclick="memoryStore()" title="Memory Store">MS</button>
+                    <button onclick="memoryAdd()" title="Memory Add">M+</button>
+                    <button onclick="memorySubtract()" title="Memory Subtract">M-</button>
+                </div>
+                <div class="font-controls">
+                    <button onclick="decreaseFont()" title="Decrease Font Size">A-</button>
+                    <button onclick="increaseFont()" title="Increase Font Size">A+</button>
+                    <button onclick="copyContent()" title="Copy Calculator Content">Copy</button>
+                    <button onclick="toggleInfo()" title="Show Keyboard Shortcuts">ℹ️</button>
+                </div>
+            </div>
+            <div class="info-panel" id="info-panel">
+                <h3>Keyboard Shortcuts</h3>
+                <ul>
+                    <li><kbd>Alt</kbd> + <kbd>R</kbd> Memory Recall</li>
+                    <li><kbd>Alt</kbd> + <kbd>S</kbd> Memory Store</li>
+                    <li><kbd>Alt</kbd> + <kbd>P</kbd> Memory Add</li>
+                    <li><kbd>Alt</kbd> + <kbd>M</kbd> Memory Subtract</li>
+                    <li><kbd>Ctrl</kbd> + <kbd>-</kbd> Decrease Font</li>
+                    <li><kbd>Ctrl</kbd> + <kbd>=</kbd> Increase Font</li>
+                    <li><kbd>Ctrl</kbd> + <kbd>C</kbd> Copy Content</li>
+                    <li><kbd>Enter</kbd> Calculate</li>
+                </ul>
+            </div>
+        </div>
+        <div class="history" id="history">
+            <!-- Calculation history will be added here -->
+        </div>
+        <div class="input-wrapper">
+            <input type="text" id="expression" placeholder="Enter expression...">
+        </div>
+    </div>
+    
+    <script>
+        // Font size control
+        let currentFontSize = 24;
+        
+        function increaseFont() {
+            currentFontSize = Math.min(currentFontSize + 2, 40);
+            updateFontSize();
+        }
+        
+        function decreaseFont() {
+            currentFontSize = Math.max(currentFontSize - 2, 14);
+            updateFontSize();
+        }
+        
+        function updateFontSize() {
+            document.getElementById('history').style.fontSize = currentFontSize + 'px';
+            document.getElementById('result').style.fontSize = currentFontSize + 'px';
+        }
+        
+        function copyContent() {
+            const historyDiv = document.getElementById('history');
+            const historyEntries = historyDiv.getElementsByClassName('history-entry');
+            let content = '';
+            
+            // Build content from history entries
+            for (const entry of historyEntries) {
+                content += entry.textContent + '\n';
+            }
+            
+            // Add current expression if it exists
+            const currentExpression = document.getElementById('expression').value;
+            if (currentExpression) {
+                content += currentExpression;
+            }
+            
+            navigator.clipboard.writeText(content);
+            
+            // Visual feedback that copy worked
+            const copyButton = document.querySelector('button[onclick="copyContent()"]');
+            const originalText = copyButton.textContent;
+            copyButton.textContent = 'Copied!';
+            setTimeout(() => {
+                copyButton.textContent = originalText;
+            }, 1000);
+        }
+        
+        // Keyboard shortcuts
+        document.addEventListener('keydown', function(e) {
+            if (e.ctrlKey || e.metaKey) {  // Ctrl or Cmd
+                if (e.key === '=') {  // Plus key
+                    e.preventDefault();
+                    increaseFont();
+                } else if (e.key === '-') {
+                    e.preventDefault();
+                    decreaseFont();
+                }
+            } else if (e.altKey) {  // Alt key combinations
+                switch(e.key.toLowerCase()) {
+                    case 'r':
+                        e.preventDefault();
+                        memoryRecall();
+                        break;
+                    case 's':
+                        e.preventDefault();
+                        memoryStore();
+                        break;
+                    case 'p':
+                        e.preventDefault();
+                        memoryAdd();
+                        break;
+                    case 'm':
+                        e.preventDefault();
+                        memorySubtract();
+                        break;
+                }
+            }
+        });
+        
+        // Calculator functionality
+        const expressionInput = document.getElementById('expression');
+        const resultDiv = document.getElementById('result');
+        
+        // Controls toggle
+        function toggleControls() {
+            const controls = document.querySelector('.controls');
+            const toggle = document.querySelector('.toggle-controls');
+            controls.classList.toggle('collapsed');
+            toggle.classList.toggle('collapsed');
+        }
+        
+        // Info panel toggle
+        function toggleInfo() {
+            const infoPanel = document.getElementById('info-panel');
+            infoPanel.classList.toggle('show');
+        }
+        
+        // Handle equals sign autocomplete
+        expressionInput.addEventListener('input', function(e) {
+            if (e.target.value.endsWith('=')) {
+                previewCalculation();
+            }
+        });
+        
+        // Preview calculation when = is typed
+        async function previewCalculation() {
+            const expression = expressionInput.value;
+            const cleanExpression = expression.slice(0, -1);  // Remove the =
+            
+            try {
+                const response = await fetch('/calculate', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ expression: cleanExpression }),
+                });
+                const data = await response.json();
+                if (data.success) {
+                    // Show the result in grey after the equals sign
+                    const previewText = `${cleanExpression}=${data.result}`;
+                    expressionInput.value = cleanExpression;  // Original expression
+                    const resultSpan = document.createElement('span');
+                    resultSpan.textContent = `=${data.result}`;
+                    resultSpan.style.color = '#999';
+                    expressionInput.insertAdjacentElement('afterend', resultSpan);
+                    expressionInput.dataset.preview = previewText;  // Store full preview
+                }
+            } catch (error) {
+                console.error('Preview failed:', error);
+            }
+        }
+        
+        expressionInput.addEventListener('keyup', function(e) {
+            if (e.key === 'Enter') {
+                if (expressionInput.dataset.preview) {
+                    const preview = expressionInput.dataset.preview;
+                    // Just use the preview text directly since it's already formatted
+                    const entry = document.createElement('div');
+                    entry.className = 'history-entry';
+                    entry.textContent = preview;
+                    const historyDiv = document.getElementById('history');
+                    historyDiv.appendChild(entry);
+                    historyDiv.scrollTop = historyDiv.scrollHeight;
+                } else {
+                    const expression = expressionInput.value;
+                    if (expression.trim()) {  // Only calculate if there's input
+                        calculate();
+                    }
+                }
+                // Clear everything after processing
+                expressionInput.value = '';
+                expressionInput.dataset.preview = '';
+                const previewSpan = expressionInput.nextElementSibling;
+                if (previewSpan && previewSpan.tagName === 'SPAN') {
+                    previewSpan.remove();
+                }
+                delete expressionInput.dataset.preview;
+            } else if (e.key !== '=') {
+                // Reset preview styling for any other key
+                // Remove any existing preview span
+                const previewSpan = expressionInput.nextElementSibling;
+                if (previewSpan && previewSpan.tagName === 'SPAN') {
+                    previewSpan.remove();
+                }
+                delete expressionInput.dataset.preview;
+            }
+        });
+        
+        // Keep focus on input
+        document.getElementById('expression').focus();
+        document.addEventListener('click', function() {
+            document.getElementById('expression').focus();
+        });
+        
+        // Handle pasted text
+        expressionInput.addEventListener('paste', function(e) {
+            e.preventDefault();
+            const text = (e.clipboardData || window.clipboardData).getData('text');
+            
+            // Convert superscript numbers to our format
+            const superscriptMap = {
+                '⁰': '0', '¹': '1', '²': '2', '³': '3', '⁴': '4',
+                '⁵': '5', '⁶': '6', '⁷': '7', '⁸': '8', '⁹': '9'
+            };
+            
+            // Replace superscript numbers with ʸ for nth root
+            let processedText = text.replace(/([⁰-⁹]+)√/, 'ʸ√');
+            
+            // Insert the processed text at cursor position
+            const start = this.selectionStart;
+            const end = this.selectionEnd;
+            const before = this.value.substring(0, start);
+            const after = this.value.substring(end);
+            this.value = before + processedText + after;
+            
+            // Move cursor after pasted text
+            this.selectionStart = this.selectionEnd = start + processedText.length;
+        });
+        
+        // Memory operations
+        async function memoryOperation(operation) {
+            try {
+                const response = await fetch('/memory', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ operation }),
+                });
+                const data = await response.json();
+                if (data.success && operation === 'MR') {
+                    document.getElementById('expression').value = data.result;
+                }
+            } catch (error) {
+                console.error('Memory operation failed:', error);
+            }
+        }
+        
+        function memoryRecall() { memoryOperation('MR'); }
+        function memoryStore() { memoryOperation('MS'); }
+        function memoryAdd() { memoryOperation('M+'); }
+        function memorySubtract() { memoryOperation('M-'); }
+        
+        // Update history after calculation
+        function updateHistory(expression, result) {
+            const historyDiv = document.getElementById('history');
+            const entry = document.createElement('div');
+            entry.className = 'history-entry';
+            // Always show expression = result format
+            if (expression.endsWith('=')) {
+                entry.textContent = `${expression}${result}`;
+            } else {
+                entry.textContent = `${expression}=${result}`;
+            }
+            historyDiv.appendChild(entry);
+            historyDiv.scrollTop = historyDiv.scrollHeight;
+        }
+        
+        async function calculate() {
+            const expression = expressionInput.value;
+            // Remove trailing equals sign if present
+            const cleanExpression = expression.endsWith('=') ? expression.slice(0, -1) : expression;
+            
+            try {
+                const response = await fetch('/calculate', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ expression: cleanExpression }),
+                });
+                const data = await response.json();
+                if (data.success) {
+                    updateHistory(expression, data.result);
+                    expressionInput.value = '';
+                } else {
+                    console.error('Calculation error:', data.error);
+                }
+            } catch (error) {
+                console.error('Error calculating:', error);
+            }
+        }
+    </script>
+</body>
+</html> 
