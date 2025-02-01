@@ -32,9 +32,11 @@ Section "Install"
   CreateShortcut "$SMPROGRAMS\AAC Tools\Scientific Calculator\Scientific Calculator.lnk" "$INSTDIR\scicalc.exe" "" "$INSTDIR\logo_44I_icon.ico"
   CreateShortcut "$SMPROGRAMS\AAC Tools\Scientific Calculator\Calculator Watch Mode.lnk" "$INSTDIR\scicalc.exe" "--readpasteboard" "$INSTDIR\logo_44I_icon.ico"
   CreateShortcut "$SMPROGRAMS\AAC Tools\Scientific Calculator\Calculator Web Interface.lnk" "$INSTDIR\calcweb.exe" "" "$INSTDIR\logo_44I_icon.ico"
+  WriteINIStr "$SMPROGRAMS\AAC Tools\Scientific Calculator\Calculator Web Interface.lnk" "InternetShortcut" "Description" "Opens calculator in your web browser"
   
   CreateShortcut "$DESKTOP\AAC Tools Scientific Calculator.lnk" "$INSTDIR\scicalc.exe" "" "$INSTDIR\logo_44I_icon.ico"
   CreateShortcut "$DESKTOP\AAC Tools Calculator Web.lnk" "$INSTDIR\calcweb.exe" "" "$INSTDIR\logo_44I_icon.ico"
+  WriteINIStr "$DESKTOP\AAC Tools Calculator Web.lnk" "InternetShortcut" "Description" "Opens calculator in your web browser"
   
   WriteUninstaller "$INSTDIR\Uninstall.exe"
   

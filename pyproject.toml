@@ -34,4 +34,12 @@ addopts = "-v --cov=src/scicalc --cov-report=term-missing"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/scicalc"]
-package-data = {"scicalc" = ["py.typed", "templates/*"]} 
+package-data = {"scicalc" = ["py.typed", "templates/*", "templates/calculator.html"]}
+
+[tool.hatch.build]
+include = [
+    "src/scicalc/templates/*.html",
+]
+
+[project.package-data]
+scicalc = ["templates/*.html"] 

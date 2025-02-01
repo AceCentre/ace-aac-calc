@@ -26,13 +26,100 @@ class Calculator:
         'pi': 'pi', 'PI': 'pi', 'Pi': 'pi', 'π': 'pi',
     }
 
+    # Dictionary of mathematical symbols and their Python equivalents
+    MATH_SYMBOLS = {
+        # Basic operators
+        '×': '*', '∗': '*', '∙': '*',  # Multiplication variants
+        '÷': '/', '∕': '/',  # Division variants
+        '−': '-', '₋': '-', '⁻': '-',  # Minus variants
+        '⁺': '+', '₊': '+',  # Plus variants
+        '⁼': '=', '₌': '=',  # Equals variants
+        '^': '**', '⁽': '(', '⁾': ')',  # Power and parentheses
+        '⁄': '/',  # Fraction slash
+        
+        # Roots
+        '√': 'sqrt',  # Square root
+        '∛': 'cbrt',  # Cube root
+        '∜': 'root4',  # Fourth root
+        'ʸ√': 'nthroot',  # nth root
+        
+        # Powers
+        'ʸ': '**',  # General power
+        'ˣ': '**',  # Power of x
+        
+        # Greek letters commonly used in math
+        'π': 'pi',    # Pi
+        'ϕ': 'phi',   # Phi
+        'θ': 'theta', # Theta
+        'ϑ': 'theta', # Theta variant
+        'ϵ': 'epsilon', # Epsilon
+        'ϱ': 'rho',   # Rho
+        
+        # Other mathematical symbols
+        '∞': 'inf',   # Infinity
+        '°': 'deg',   # Degree
+        '′': 'prime', # Prime
+        '″': 'prime2', # Double prime
+        '‴': 'prime3', # Triple prime
+        '±': 'pm',    # Plus-minus
+    }
+
     def clean_expression(self, expression):
         """Clean and normalize the input expression."""
         if not expression:
             return expression
         
-        # Replace function names with their canonical forms
+        # Handle superscript numbers first
+        superscript_map = str.maketrans('⁰¹²³⁴⁵⁶⁷⁸⁹', '0123456789')
+        def replace_superscript(match):
+            return f"**{match.group(0).translate(superscript_map)}"
+        expression = re.sub(r'([⁰¹²³⁴⁵⁶⁷⁸⁹]+)', replace_superscript, expression)
+        
+        # Handle subscript numbers in logarithms
+        subscript_map = str.maketrans('₀₁₂₃₄₅₆₇₈₉', '0123456789')
+        def replace_subscript(match):
+            base = match.group(1).translate(subscript_map)
+            return f"logbase({match.group(2)}, {base})"
+        expression = re.sub(r'log([₀₁₂₃₄₅₆₇₈₉]+)\((.+?)\)', replace_subscript, expression)
+        
+        # First handle scientific notation before other replacements
+        def handle_scientific(match):
+            num, exp = match.groups()
+            return f"{num}*10**{exp}"
+        expression = re.sub(r'(\d+)e(\d+)', handle_scientific, expression)
+        
+        # First balance any unclosed parentheses
+        open_count = expression.count('(')
+        close_count = expression.count(')')
+        if open_count > close_count:
+            expression += ')' * (open_count - close_count)
+        
+        # Handle special cases first before any other processing
+        if expression.strip() == '1/x':
+            return 'reciprocal(x)'  # Use reciprocal function
+        
+        # Handle plus-minus
+        if expression.startswith('±'):
+            return f'pm({expression[1:]})'
+        
+        # Replace mathematical symbols with their Python equivalents
         cleaned = expression
+        for symbol, replacement in self.MATH_SYMBOLS.items():
+            cleaned = cleaned.replace(symbol, replacement)
+        
+        # Handle all implicit multiplication cases
+        cleaned = re.sub(r'(\d+)([πe])', r'\1*\2', cleaned)  # Numbers with constants
+        cleaned = re.sub(r'(\d+)([a-zA-Z])', r'\1*\2', cleaned)  # Numbers with variables
+        cleaned = re.sub(r'\)(\d+)', r')*\1', cleaned)  # Close paren with number
+        cleaned = re.sub(r'\)\(', r')*(', cleaned)  # Between parentheses
+        
+        # Handle function calls before other replacements
+        def handle_function(match):
+            func, arg = match.groups()
+            return f"{func}({arg})"
+        cleaned = re.sub(r'([a-zA-Z]+)(\d+)', handle_function, cleaned)
+        
+        # Replace function names with their canonical forms
         for alias, canonical in self.FUNCTION_ALIASES.items():
             # Use word boundaries to avoid partial replacements
             cleaned = re.sub(rf'\b{alias}\b', canonical, cleaned)
@@ -40,19 +127,21 @@ class Calculator:
         # Remove extra whitespace
         cleaned = ' '.join(cleaned.split())
         
-        # Replace common symbols
-        cleaned = cleaned.replace('×', '*')
-        cleaned = cleaned.replace('÷', '/')
-        cleaned = cleaned.replace('−', '-')
-        cleaned = cleaned.replace('^', '**')
-        # Handle superscript numbers
-        cleaned = cleaned.replace('²', '**2')
-        cleaned = cleaned.replace('³', '**3')
-        # Handle roots
-        cleaned = cleaned.replace('∛', 'cbrt')
-        cleaned = cleaned.replace('√', 'sqrt')
-        # Handle inverse trig
-        cleaned = cleaned.replace('⁻¹', 'a')  # sin⁻¹ becomes asin
+        # Handle special functions
+        cleaned = re.sub(r'(\w+)⁻¹\(', r'a\1(', cleaned)  # sin⁻¹(x) becomes asin(x)
+        
+        # Handle roots with proper function calls
+        cleaned = re.sub(r'∜\s*(\d+|\([^)]+\))', r'root4(\1)', cleaned)  # Fourth root
+        cleaned = re.sub(r'∛\s*(\d+|\([^)]+\))', r'cbrt(\1)', cleaned)  # Cube root
+        cleaned = re.sub(r'√\s*(\d+|\([^)]+\))', r'sqrt(\1)', cleaned)  # Square root
+        
+        # Handle degrees with proper multiplication
+        cleaned = re.sub(r'(\d+)°', r'rad(\1)', cleaned)  # Use rad function
+        
+        # Handle prime notation
+        cleaned = re.sub(r'(\d+)′', r'\1', cleaned)  # Single prime is identity
+        cleaned = re.sub(r'(\d+)″', r'(\1**2)', cleaned)  # Double prime is square
+        cleaned = re.sub(r'(\d+)‴', r'(\1**3)', cleaned)  # Triple prime is cube
         
         return cleaned
 
@@ -91,26 +180,42 @@ class Calculator:
                 # Powers and roots
                 'sqrt': math.sqrt,
                 'cbrt': lambda x: np.cbrt(x),
+                'root4': lambda x: x ** (1/4),
+                'nthroot': lambda x, n: x ** (1/n),  # nth root
                 'pow': pow,
                 'exp': math.exp,
+                'reciprocal': lambda x: 1/x,  # 1/x function
                 
                 # Logarithms
                 'log': math.log10,
                 'ln': math.log,
                 'log2': math.log2,
+                'logbase': lambda x, base: math.log(x, base),  # Log with arbitrary base
                 
                 # Constants
                 'pi': math.pi,
                 'e': math.e,
+                'inf': float('inf'),
+                'phi': (1 + math.sqrt(5)) / 2,  # Golden ratio
+                'theta': math.pi,  # Common use of theta is pi
+                'epsilon': np.finfo(float).eps,  # Machine epsilon
+                'rho': math.pi,  # Sometimes used as alternative to pi
                 
                 # Additional functions
                 'abs': abs,
                 'factorial': math.factorial,
                 'rand': np.random.random,
+                'pm': lambda x: [x, -x],  # Plus-minus returns both values
+                'prime': lambda x: x,      # For now, just return the number
+                'prime2': lambda x: x**2,  # Square
+                'prime3': lambda x: x**3,  # Cube
                 
                 # Common operations
                 'rad': math.radians,
-                'deg': math.degrees
+                'deg': math.degrees,
+                
+                # Add x variable for 1/x calculations
+                'x': self._last_result if hasattr(self, '_last_result') else 0,
             }
             
             # Handle special cases

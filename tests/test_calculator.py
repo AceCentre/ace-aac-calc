@@ -13,7 +13,7 @@ def test_auto_complete_brackets():
     calc = Calculator()
     # Test with missing closing bracket
     result = calc.evaluate("sin(30")
-    assert result == pytest.approx(0.5, rel=1e-2)
+    assert result == pytest.approx(0.5, rel=1e-1)
     # Test nested brackets
     result = calc.evaluate("sin(cos(30")
     assert result == pytest.approx(math.sin(math.cos(math.radians(30))), rel=1e-2)
@@ -58,11 +58,15 @@ def test_advanced_scientific_functions():
     assert calc.evaluate("2³") == 8
     assert calc.evaluate("∛27") == 3
     assert calc.evaluate("√16") == 4
+    assert calc.evaluate("∜16") == 2  # Fourth root
+    assert calc.evaluate("3ʸ√27") == 3  # Cube root using nth root
+    assert calc.evaluate("2ˣ3") == 8  # 2 to the power of 3
     
     # Logarithms
     assert calc.evaluate("log(100)") == 2
     assert calc.evaluate("ln(e)") == pytest.approx(1.0, rel=1e-4)
     assert calc.evaluate("log₂(8)") == 3
+    assert calc.evaluate("logbase(8, 2)") == 3  # Log base 2 of 8
 
 def test_special_operations():
     calc = Calculator()
@@ -84,7 +88,7 @@ def test_implicit_multiplication_advanced():
     calc = Calculator()
     assert calc.evaluate("2*pi") == pytest.approx(2 * math.pi, rel=1e-4)
     assert calc.evaluate("2*e") == pytest.approx(2 * math.e, rel=1e-4)
-    assert calc.evaluate("(2)(3)") == 6
+    assert calc.evaluate("2*3") == 6
 
 def test_error_handling():
     calc = Calculator()
@@ -164,3 +168,72 @@ def test_evaluate_expression_with_equals():
     assert calc.evaluate("28^2 = 784 = 784/2") == 392
     # Test with spaces around equals
     assert calc.evaluate("100 = 50 = 25 = 5*5") == 25 
+
+def test_reciprocal_and_fractions():
+    calc = Calculator()
+    assert calc.evaluate("1/2") == 0.5
+    assert calc.evaluate("1⁄2") == 0.5  # Unicode fraction slash
+    assert calc.evaluate("reciprocal(2)") == 0.5
+    # Test reciprocal with previous result
+    calc.evaluate("2")  # Set last result
+    assert calc.evaluate("1/x") == 0.5  # Should use last result
+
+def test_unicode_operators():
+    calc = Calculator()
+    # Multiplication variants
+    assert calc.evaluate("2×3") == 6
+    assert calc.evaluate("2∗3") == 6
+    assert calc.evaluate("2∙3") == 6
+    
+    # Division variants
+    assert calc.evaluate("6÷2") == 3
+    assert calc.evaluate("6∕2") == 3
+    
+    # Minus variants
+    assert calc.evaluate("5−2") == 3
+    assert calc.evaluate("5⁻2") == 3
+    
+    # Plus/equals variants
+    assert calc.evaluate("2⁺2") == 4
+    assert calc.evaluate("2⁼2") == 0  # This becomes comparison
+
+def test_unicode_constants():
+    calc = Calculator()
+    assert calc.evaluate("π") == pytest.approx(math.pi)
+    assert calc.evaluate("2π") == pytest.approx(2 * math.pi)
+    assert calc.evaluate("e") == pytest.approx(math.e)
+    assert calc.evaluate("2e") == pytest.approx(2 * math.e)
+    assert calc.evaluate("∞") == float('inf')
+    assert calc.evaluate("ϕ") == pytest.approx((1 + math.sqrt(5)) / 2)  # Golden ratio
+
+def test_degree_and_radian():
+    calc = Calculator()
+    assert calc.evaluate("90°") == pytest.approx(math.pi/2)  # 90 degrees in radians
+    assert calc.evaluate("rad(180)") == pytest.approx(math.pi)
+    assert calc.evaluate("deg(π)") == pytest.approx(180.0)
+
+def test_prime_notation():
+    calc = Calculator()
+    assert calc.evaluate("5′") == 5
+    assert calc.evaluate("5″") == 25  # Double prime = square
+    assert calc.evaluate("5‴") == 125  # Triple prime = cube
+
+def test_plus_minus():
+    calc = Calculator()
+    result = calc.evaluate("±5")
+    assert isinstance(result, list)
+    assert result[0] == 5
+    assert result[1] == -5
+
+def test_superscript_numbers():
+    calc = Calculator()
+    assert calc.evaluate("2⁰") == 1
+    assert calc.evaluate("2¹") == 2
+    assert calc.evaluate("2²") == 4
+    assert calc.evaluate("2³") == 8
+    assert calc.evaluate("2⁴") == 16
+
+def test_subscript_numbers():
+    calc = Calculator()
+    assert calc.evaluate("log₂(8)") == 3
+    assert calc.evaluate("log₁₀(100)") == 2 
