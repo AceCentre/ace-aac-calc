@@ -5,11 +5,12 @@ import pyperclip
 import time
 
 class Calculator:
-    def __init__(self):
+    def __init__(self, decimal_places=None):
         self._memory = 0
         self._last_result = 0
         self._last_expression = None
         self._last_pasteboard = None
+        self._decimal_places = decimal_places
 
     # Dictionary of function name mappings (case-insensitive)
     FUNCTION_ALIASES = {
@@ -341,6 +342,11 @@ class Calculator:
 
     def format_output(self, result: float, return_format: str = "answer") -> str:
         """Format the output based on the requested format."""
+        # Format the number with specified decimal places if set
+        if self._decimal_places is not None:
+            if isinstance(result, float):
+                result = round(result, self._decimal_places)
+        
         if return_format == "answer":
             return f"{result}"
         elif return_format == "answer,calc":

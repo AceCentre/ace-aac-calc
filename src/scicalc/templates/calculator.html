@@ -125,6 +125,18 @@
             flex: 0 0 auto;
             min-width: 40px;
         }
+        .decimal-display {
+            padding: 3px 8px;
+            font-size: 16px;
+            background: #f8f8f8;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+            color: #666;
+            margin: 0 10px;
+            min-width: 40px;
+            text-align: center;
+            user-select: none;
+        }
         .font-controls button {
             padding: 5px 10px;
             margin-left: 5px;
@@ -188,6 +200,9 @@
                     <button onclick="memoryOperation('M+')" title="Memory Add">M+</button>
                     <button onclick="memoryOperation('M-')" title="Memory Subtract">M-</button>
                 </div>
+                <div id="decimal-places" class="decimal-display" title="Current decimal places (Ctrl+Shift+0-9 to change)">
+                    All
+                </div>
                 <div class="font-controls">
                     <button onclick="decreaseFont()" title="Decrease Font Size">A-</button>
                     <button onclick="increaseFont()" title="Increase Font Size">A+</button>
@@ -205,6 +220,7 @@
                     <li><kbd>Ctrl</kbd> + <kbd>-</kbd> Decrease Font</li>
                     <li><kbd>Ctrl</kbd> + <kbd>=</kbd> Increase Font</li>
                     <li><kbd>Ctrl</kbd> + <kbd>C</kbd> Copy Content</li>
+                    <li><kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>0-9</kbd> Set decimal places (0=all)</li>
                     <li><kbd>Enter</kbd> Calculate</li>
                 </ul>
             </div>
@@ -263,17 +279,39 @@
             }, 1000);
         }
         
-        // Keyboard shortcuts
+        // Handle keyboard shortcuts
         document.addEventListener('keydown', function(e) {
+            console.log('Key pressed:', {
+                key: e.key,
+                ctrl: e.ctrlKey,
+                meta: e.metaKey,
+                shift: e.shiftKey,
+                alt: e.altKey,
+                keyCode: e.keyCode,  // Add keyCode for debugging
+                code: e.code         // Add code for more reliable key detection
+            });
+            
             if (e.ctrlKey || e.metaKey) {  // Ctrl or Cmd
-                if (e.key === '=') {  // Plus key
+                console.log('Ctrl/Cmd pressed with:', e.key);
+                // Use e.code to detect number keys more reliably
+                if (e.shiftKey && e.code.match(/^Digit[0-9]$/)) {
+                    const number = e.code.replace('Digit', '');
+                    console.log('Attempting to set decimal places to:', e.key);
                     e.preventDefault();
-                    increaseFont();
-                } else if (e.key === '-') {
-                    e.preventDefault();
-                    decreaseFont();
+                    setDecimalPlaces(parseInt(number));
+                }
+                switch(e.key) {
+                    case '=':
+                        e.preventDefault();
+                        increaseFont();
+                        break;
+                    case '-':
+                        e.preventDefault();
+                        decreaseFont();
+                        break;
                 }
             } else if (e.altKey) {  // Alt key combinations
+                console.log('Alt combination:', e.key);
                 switch(e.key.toLowerCase()) {
                     case 'r':
                         e.preventDefault();
@@ -294,6 +332,28 @@
                 }
             }
         });
+        
+        // Function to set decimal places
+        async function setDecimalPlaces(places) {
+            console.log('setDecimalPlaces called with:', places);
+            try {
+                const response = await fetch('/decimals', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ places: places === 0 ? null : places }),
+                });
+                const data = await response.json();
+                console.log('Decimal places response:', data);
+                if (data.success) {
+                    const status = document.getElementById('decimal-places');
+                    status.textContent = `${places === 0 ? 'All' : places}`;
+                }
+            } catch (error) {
+                console.error('Error setting decimals:', error);
+            }
+        }
         
         // Calculator functionality
         const expressionInput = document.getElementById('expression');

@@ -28,6 +28,14 @@ def setup_logging():
 # Set up logging first
 setup_logging()
 
+# Get decimal places from environment or default to None
+DECIMAL_PLACES = os.environ.get('DECIMAL_PLACES')
+if DECIMAL_PLACES is not None:
+    try:
+        DECIMAL_PLACES = int(DECIMAL_PLACES)
+    except ValueError:
+        DECIMAL_PLACES = None
+
 # Set up Flask to find templates
 if getattr(sys, 'frozen', False):
     # Running as compiled executable
@@ -59,7 +67,7 @@ logging.getLogger('flask').setLevel(logging.DEBUG)
 # Add Werkzeug debug logging
 logging.getLogger('werkzeug').setLevel(logging.DEBUG)
 
-calculator = Calculator()
+calculator = Calculator(decimal_places=DECIMAL_PLACES)
 
 def signal_handler(sig, frame):
     logging.info('Shutting down calculator web server...')
@@ -87,11 +95,15 @@ def index():
 def calculate():
     data = request.get_json()
     expression = data.get('expression', '')
+    logging.info(f"Calculating with decimal places: {calculator._decimal_places}")
     try:
         result = calculator.evaluate(expression)
+        logging.info(f"Result before formatting: {result}")
+        # Format the result using the calculator's format_output method
+        formatted_result = calculator.format_output(result, "answer")
         return jsonify({
             'success': True,
-            'result': result,
+            'result': formatted_result,
             'expression': expression
         })
     except ValueError as e:
@@ -99,6 +111,19 @@ def calculate():
             'success': False,
             'error': str(e)
         })
+
+@app.route('/decimals', methods=['POST'])
+def set_decimals():
+    data = request.get_json()
+    places = data.get('places')
+    logging.info(f"Setting decimal places to: {places}")
+    try:
+        calculator._decimal_places = int(places) if places is not None else None
+        logging.info(f"Decimal places set to: {calculator._decimal_places}")
+        return jsonify({'success': True, 'places': calculator._decimal_places})
+    except ValueError:
+        logging.error(f"Invalid decimal places value: {places}")
+        return jsonify({'success': False, 'error': 'Invalid decimal places'})
 
 def main():
     signal.signal(signal.SIGINT, signal_handler)
