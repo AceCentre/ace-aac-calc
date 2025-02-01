@@ -37,6 +37,9 @@ class Calculator:
         '^': '**', '⁽': '(', '⁾': ')',  # Power and parentheses
         '⁄': '/',  # Fraction slash
         
+        # Variables
+        'x': 'x',  # Variable x
+        
         # Roots
         '√': 'sqrt',  # Square root
         '∛': 'cbrt',  # Cube root
@@ -69,60 +72,62 @@ class Calculator:
         if not expression:
             return expression
         
+        # First handle root functions before other replacements
+        cleaned = expression
+        cleaned = re.sub(r'∜\s*(\d+|\([^)]+\))', r'root4(\1)', cleaned)  # Fourth root
+        cleaned = re.sub(r'∛\s*(\d+|\([^)]+\))', r'cbrt(\1)', cleaned)  # Cube root
+        cleaned = re.sub(r'√\s*(\d+|\([^)]+\))', r'sqrt(\1)', cleaned)  # Square root
+        
         # Handle superscript numbers first
         superscript_map = str.maketrans('⁰¹²³⁴⁵⁶⁷⁸⁹', '0123456789')
         def replace_superscript(match):
             return f"**{match.group(0).translate(superscript_map)}"
-        expression = re.sub(r'([⁰¹²³⁴⁵⁶⁷⁸⁹]+)', replace_superscript, expression)
+        cleaned = re.sub(r'([⁰¹²³⁴⁵⁶⁷⁸⁹]+)', replace_superscript, cleaned)
         
         # Handle subscript numbers in logarithms
         subscript_map = str.maketrans('₀₁₂₃₄₅₆₇₈₉', '0123456789')
         def replace_subscript(match):
             base = match.group(1).translate(subscript_map)
             return f"logbase({match.group(2)}, {base})"
-        expression = re.sub(r'log([₀₁₂₃₄₅₆₇₈₉]+)\((.+?)\)', replace_subscript, expression)
+        cleaned = re.sub(r'log([₀₁₂₃₄₅₆₇₈₉]+)\((.+?)\)', replace_subscript, cleaned)
         
         # First handle scientific notation before other replacements
         def handle_scientific(match):
             num, exp = match.groups()
             return f"{num}*10**{exp}"
-        expression = re.sub(r'(\d+)e(\d+)', handle_scientific, expression)
+        cleaned = re.sub(r'(\d+)e(\d+)', handle_scientific, cleaned)
         
         # First balance any unclosed parentheses
-        open_count = expression.count('(')
-        close_count = expression.count(')')
+        open_count = cleaned.count('(')
+        close_count = cleaned.count(')')
         if open_count > close_count:
-            expression += ')' * (open_count - close_count)
+            # Simply add missing closing parentheses at the end
+            cleaned += ')' * (open_count - close_count)
         
         # Handle special cases first before any other processing
-        if expression.strip() == '1/x':
+        if cleaned.strip() == '1/x':
             return 'reciprocal(x)'  # Use reciprocal function
         
         # Handle plus-minus
-        if expression.startswith('±'):
-            return f'pm({expression[1:]})'
+        if cleaned.startswith('±'):
+            return f'pm({cleaned[1:]})'
         
         # Replace mathematical symbols with their Python equivalents
-        cleaned = expression
         for symbol, replacement in self.MATH_SYMBOLS.items():
             cleaned = cleaned.replace(symbol, replacement)
         
-        # Handle all implicit multiplication cases
-        cleaned = re.sub(r'(\d+)([πe])', r'\1*\2', cleaned)  # Numbers with constants
-        cleaned = re.sub(r'(\d+)([a-zA-Z])', r'\1*\2', cleaned)  # Numbers with variables
-        cleaned = re.sub(r'\)(\d+)', r')*\1', cleaned)  # Close paren with number
-        cleaned = re.sub(r'\)\(', r')*(', cleaned)  # Between parentheses
-        
-        # Handle function calls before other replacements
-        def handle_function(match):
-            func, arg = match.groups()
-            return f"{func}({arg})"
-        cleaned = re.sub(r'([a-zA-Z]+)(\d+)', handle_function, cleaned)
-        
-        # Replace function names with their canonical forms
+        # Replace function names with their canonical forms first
         for alias, canonical in self.FUNCTION_ALIASES.items():
             # Use word boundaries to avoid partial replacements
             cleaned = re.sub(rf'\b{alias}\b', canonical, cleaned)
+        
+        # Handle implicit multiplication with constants
+        cleaned = re.sub(r'(\d+)([πe])', r'\1*\2', cleaned)  # Numbers with constants
+        # Handle all forms of implicit multiplication
+        cleaned = re.sub(r'(\d+)([a-zA-Z])', r'\1*\2', cleaned)  # Number followed by variable (2x)
+        cleaned = re.sub(r'([a-zA-Z])(\d+)', r'\1*\2', cleaned)  # Variable followed by number (x2)
+        cleaned = re.sub(r'(\d+)\(', r'\1*(', cleaned)  # Number followed by parenthesis
+        cleaned = re.sub(r'(\d+)([√∛∜])', r'\1*\2', cleaned)  # Number followed by root
         
         # Remove extra whitespace
         cleaned = ' '.join(cleaned.split())
@@ -130,24 +135,23 @@ class Calculator:
         # Handle special functions
         cleaned = re.sub(r'(\w+)⁻¹\(', r'a\1(', cleaned)  # sin⁻¹(x) becomes asin(x)
         
-        # Handle roots with proper function calls
-        cleaned = re.sub(r'∜\s*(\d+|\([^)]+\))', r'root4(\1)', cleaned)  # Fourth root
-        cleaned = re.sub(r'∛\s*(\d+|\([^)]+\))', r'cbrt(\1)', cleaned)  # Cube root
-        cleaned = re.sub(r'√\s*(\d+|\([^)]+\))', r'sqrt(\1)', cleaned)  # Square root
-        
         # Handle degrees with proper multiplication
         cleaned = re.sub(r'(\d+)°', r'rad(\1)', cleaned)  # Use rad function
         
         # Handle prime notation
-        cleaned = re.sub(r'(\d+)′', r'\1', cleaned)  # Single prime is identity
-        cleaned = re.sub(r'(\d+)″', r'(\1**2)', cleaned)  # Double prime is square
-        cleaned = re.sub(r'(\d+)‴', r'(\1**3)', cleaned)  # Triple prime is cube
+        cleaned = re.sub(r'(\d+)′', r'prime(\1)', cleaned)  # Single prime
+        cleaned = re.sub(r'(\d+)″', r'prime2(\1)', cleaned)  # Double prime
+        cleaned = re.sub(r'(\d+)‴', r'prime3(\1)', cleaned)  # Triple prime
         
         return cleaned
 
     def evaluate(self, expression: str) -> float:
         # Store the original expression
         self._last_expression = expression
+        
+        # Initialize x variable with last result
+        if not hasattr(self, '_last_result'):
+            self._last_result = 0
         
         # If expression contains equals sign, take the part after the last equals
         if '=' in expression:
@@ -181,6 +185,7 @@ class Calculator:
                 'sqrt': math.sqrt,
                 'cbrt': lambda x: np.cbrt(x),
                 'root4': lambda x: x ** (1/4),
+                'root': lambda x, n: x ** (1/n),  # General root function
                 'nthroot': lambda x, n: x ** (1/n),  # nth root
                 'pow': pow,
                 'exp': math.exp,
@@ -191,6 +196,16 @@ class Calculator:
                 'ln': math.log,
                 'log2': math.log2,
                 'logbase': lambda x, base: math.log(x, base),  # Log with arbitrary base
+                
+                # Unicode operators need explicit functions
+                '×': lambda x, y: x * y,
+                '∗': lambda x, y: x * y,
+                '∙': lambda x, y: x * y,
+                '÷': lambda x, y: x / y,
+                '∕': lambda x, y: x / y,
+                '−': lambda x, y: x - y,
+                '⁻': lambda x, y: x - y,
+                '⁺': lambda x, y: x + y,
                 
                 # Constants
                 'pi': math.pi,
@@ -214,8 +229,8 @@ class Calculator:
                 'rad': math.radians,
                 'deg': math.degrees,
                 
-                # Add x variable for 1/x calculations
-                'x': self._last_result if hasattr(self, '_last_result') else 0,
+                # Add x variable for calculations
+                'x': self._last_result,  # x is always initialized now
             }
             
             # Handle special cases
