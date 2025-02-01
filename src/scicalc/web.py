@@ -100,26 +100,6 @@ def calculate():
             'error': str(e)
         })
 
-@app.route('/memory', methods=['POST'])
-def memory_operation():
-    data = request.get_json()
-    operation = data.get('operation', '')
-    
-    if operation == 'MR':
-        result = calculator.memory_recall()
-        return jsonify({'success': True, 'result': result})
-    elif operation == 'MS':
-        calculator.memory_store()
-        return jsonify({'success': True})
-    elif operation == 'M+':
-        calculator.memory_add()
-        return jsonify({'success': True})
-    elif operation == 'M-':
-        calculator.memory_subtract()
-        return jsonify({'success': True})
-    
-    return jsonify({'success': False, 'error': 'Invalid memory operation'})
-
 def main():
     signal.signal(signal.SIGINT, signal_handler)
     

@@ -183,10 +183,10 @@
             </span>
             <div class="controls">
                 <div class="memory-controls">
-                    <button onclick="memoryRecall()" title="Memory Recall">MR</button>
-                    <button onclick="memoryStore()" title="Memory Store">MS</button>
-                    <button onclick="memoryAdd()" title="Memory Add">M+</button>
-                    <button onclick="memorySubtract()" title="Memory Subtract">M-</button>
+                    <button onclick="memoryOperation('MR')" title="Memory Recall">MR</button>
+                    <button onclick="memoryOperation('MS')" title="Memory Store">MS</button>
+                    <button onclick="memoryOperation('M+')" title="Memory Add">M+</button>
+                    <button onclick="memoryOperation('M-')" title="Memory Subtract">M-</button>
                 </div>
                 <div class="font-controls">
                     <button onclick="decreaseFont()" title="Decrease Font Size">A-</button>
@@ -277,19 +277,19 @@
                 switch(e.key.toLowerCase()) {
                     case 'r':
                         e.preventDefault();
-                        memoryRecall();
+                        memoryOperation('MR');
                         break;
                     case 's':
                         e.preventDefault();
-                        memoryStore();
+                        memoryOperation('MS');
                         break;
                     case 'p':
                         e.preventDefault();
-                        memoryAdd();
+                        memoryOperation('M+');
                         break;
                     case 'm':
                         e.preventDefault();
-                        memorySubtract();
+                        memoryOperation('M-');
                         break;
                 }
             }
@@ -416,29 +416,59 @@
             this.selectionStart = this.selectionEnd = start + processedText.length;
         });
         
+        // Memory storage
+        let memoryValue = 0;
+        
         // Memory operations
-        async function memoryOperation(operation) {
-            try {
-                const response = await fetch('/memory', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({ operation }),
-                });
-                const data = await response.json();
-                if (data.success && operation === 'MR') {
-                    document.getElementById('expression').value = data.result;
-                }
-            } catch (error) {
-                console.error('Memory operation failed:', error);
+        function memoryOperation(operation) {
+            let currentValue;
+            const currentExpression = expressionInput.value;
+            
+            // If there's a preview result, use that
+            if (expressionInput.dataset.preview) {
+                currentValue = parseFloat(expressionInput.dataset.preview.split('=')[1].trim());
+            } 
+            // If there's a calculation in history, use its result
+            else if (document.querySelector('.history-entry:last-child')) {
+                const lastCalc = document.querySelector('.history-entry:last-child').textContent;
+                currentValue = parseFloat(lastCalc.split('=')[1]);
+            }
+            // If there's a current expression, evaluate it
+            else if (currentExpression.trim()) {
+                currentValue = parseFloat(currentExpression);
+            }
+            
+            switch(operation) {
+                case 'MS':
+                    if (!isNaN(currentValue)) {
+                        memoryValue = currentValue;
+                    }
+                    break;
+                case 'MR':
+                    // Insert at cursor position or append to expression
+                    const input = expressionInput;
+                    const start = input.selectionStart;
+                    const end = input.selectionEnd;
+                    const before = input.value.substring(0, start);
+                    const after = input.value.substring(end);
+                    input.value = before + memoryValue + after;
+                    input.focus();
+                    // Move cursor after inserted value
+                    const newPosition = start + String(memoryValue).length;
+                    input.setSelectionRange(newPosition, newPosition);
+                    break;
+                case 'M+':
+                    if (!isNaN(currentValue)) {
+                        memoryValue += currentValue;
+                    }
+                    break;
+                case 'M-':
+                    if (!isNaN(currentValue)) {
+                        memoryValue -= currentValue;
+                    }
+                    break;
             }
         }
-        
-        function memoryRecall() { memoryOperation('MR'); }
-        function memoryStore() { memoryOperation('MS'); }
-        function memoryAdd() { memoryOperation('M+'); }
-        function memorySubtract() { memoryOperation('M-'); }
         
         // Update history after calculation
         function updateHistory(expression, result) {
