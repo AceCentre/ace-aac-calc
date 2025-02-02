@@ -579,7 +579,7 @@
         }
         
         function formatFractions(text) {
-            // First format the fractions
+            // First handle fractions
             let formattedText = text.replace(/(\d+)\/(\d+)/g, (match, numerator, denominator) => {
                 return `<span class="fraction">
                     <span class="fup">${numerator}</span>
@@ -588,14 +588,11 @@
                 </span>`;
             });
             
-            // Then replace other mathematical symbols
+            // Then handle other mathematical symbols
             formattedText = formattedText
-                .replace(/\*/g, '×')  // Multiplication
-                .replace(/\//g, '÷')  // Division (when not in fractions)
+                .replace(/\*/g, ' × ')  // Multiplication with spaces
                 .replace(/([0-9])\+/g, '$1 + ')  // Add spaces around operators
                 .replace(/([0-9])\-/g, '$1 - ')
-                .replace(/([0-9])\×/g, '$1 × ')
-                .replace(/([0-9])\÷/g, '$1 ÷ ')
                 .replace(/\bsqrt\b/g, '√')  // Square root
                 .replace(/\bpi\b/g, 'π')  // Pi
                 .replace(/\^2\b/g, '²')  // Squared
@@ -605,12 +602,7 @@
                 .replace(/([0-9])³/g, '$1³')
                 .replace(/\be\b/g, 'ℯ')  // Euler's number
                 .replace(/\binfinity\b/g, '∞')  // Infinity
-                .replace(/\bdeg\b/g, '°')  // Degrees
-                .replace(/!==/g, '≢')  // Not identical to
-                .replace(/!=/g, '≠')  // Not equal to
-                .replace(/<=/g, '≤')  // Less than or equal to
-                .replace(/>=/g, '≥')  // Greater than or equal to
-                .replace(/==/g, '=');  // Equal to
+                .replace(/\bdeg\b/g, '°');  // Degrees
             
             return formattedText;
         }
