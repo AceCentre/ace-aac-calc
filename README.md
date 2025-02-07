@@ -1,40 +1,59 @@
-# Scientific Calculator CLI
+# Scientific Calculator
 
-A command-line scientific calculator designed specifically for AAC (Augmentative and Alternative Communication) users. This calculator provides advanced mathematical functions with an accessible interface that can be easily integrated with AAC software.
+A powerful scientific calculator that runs directly in your web browser. The calculator supports standard arithmetic, scientific functions, memory operations, and a history of calculations.
 
-## Features
+## Key Features
 
 - Basic arithmetic operations (+, -, *, /)
-- Scientific functions:
-  - Trigonometric functions (sin, cos, tan)
-  - Inverse trigonometric functions (sin⁻¹, cos⁻¹, tan⁻¹)
-  - Hyperbolic functions (sinh, cosh, tanh)
-  - Logarithms (log₂, log₁₀, ln)
-  - Powers and roots (√, ∛, x², x³)
-- Special operations:
-  - Percentages (50%, 200+10%)
-  - Factorial (5!)
-  - Scientific notation (2EE3 = 2×10³)
-- Memory functions (store, recall, add to memory, subtract from memory)
-- Automatic bracket completion
-- Implicit multiplication (2π = 2*π)
+- Scientific functions (sin, cos, tan, log, etc.)
+- Memory operations
+- Expression history with recall
+- Adjustable decimal places
+- Radians/Degrees toggle
 
-## Installation
+## Keyboard Shortcuts
 
-### Windows Installer
-Download the latest installer from the [Releases](https://github.com/yourusername/scicalccli/releases) page.
+- `Enter` or `=` - Evaluate expression
+- `Escape` - Clear workpad
+- `↑` - Previous expression
+- `↓` - Next expression
+- `Alt/⌘ + D` - Toggle Degrees/Radians
+- `Ctrl + (0-9)` - Set decimal places
 
-### From Source
+## Memory Operations
 
-```bash
-uv pip install git+https://github.com/yourusername/scicalccli.git
-```
+- `Ctrl/⌘ + P` - Memory Plus (M+)
+- `Ctrl/⌘ + M` - Memory Minus (M-)
+- `Ctrl/⌘ + R` - Memory Recall (MR)
 
-## Usage
+## Common Operations
 
-To use the calculator, simply run the `scicalc` command in your terminal.
+### Random Numbers
+- Generate random number (0-1): `rand()`
+- Roll a die (1-6): `floor(rand() * 6) + 1`
+- Random number (1-100): `floor(rand() * 100) + 1`
 
-### Basic Usage
+### Mathematical Functions
+- Square root: `sqrt(25)`
+- Power: `2^3` or `pow(2,3)`
+- Absolute value: `abs(-5)`
+- Floor: `floor(3.7)`
+- Ceiling: `ceil(3.2)`
+- Round: `round(3.5)`
+
+### Trigonometry
+- Sine: `sin(45)` 
+- Cosine: `cos(45)`
+- Tangent: `tan(45)`
+- Arc sine: `asin(0.5)`
+- Arc cosine: `acos(0.5)`
+- Arc tangent: `atan(0.5)`
+
+### Constants
+- Pi: `pi`
+- Euler's number: `e`
+
+### Examples
 
 ```bash
 scicalc "2+2"              # Basic arithmetic
@@ -130,3 +149,24 @@ uv pip install -e ".[test]"
 ```bash
 uv run pytest
 ```
+
+### Input Methods
+
+The calculator accepts both text and Unicode math symbols:
+
+| Text Input | Symbol Input | Description |
+|------------|-------------|-------------|
+| `sqrt(x)`  | `√x`        | Square root |
+| `pi`       | `π`         | Pi constant |
+| `*`        | `×`         | Multiplication |
+| `/`        | `÷`         | Division |
+| `^2`       | `²`         | Square |
+| `^3`       | `³`         | Cube |
+| `e`        | `ℯ`         | Euler's number |
+
+Examples:
+- `2×π` or `2*pi` → `6.283185...`
+- `√25` or `sqrt(25)` → `5`
+- `3²` or `3^2` → `9`
+
+Both notation styles work interchangeably, so you can mix and match based on your preference.

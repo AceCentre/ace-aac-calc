@@ -277,31 +277,29 @@
             }
         });
 
-        // Helper functions
-        function toLatex(input) {
-            try {
-                // If expression is just text, return it as-is
-                if (/^[a-zA-Z\s]+$/.test(input)) {
-                    return input;
-                }
+        // Add symbol mapping for common math symbols
+        const symbolMap = {
+            '√': 'sqrt',    // Square root symbol
+            '∛': 'cbrt',    // Cube root symbol
+            'π': 'pi',      // Pi symbol
+            '÷': '/',       // Division symbol
+            '×': '*',       // Multiplication symbol
+            '−': '-',       // Minus symbol
+            '²': '^2',      // Squared
+            '³': '^3',      // Cubed
+            '∞': 'Infinity', // Infinity symbol
+            'ℯ': 'e',       // Euler's number
+            '±': '+/-',     // Plus-minus sign
+            '≤': '<=',      // Less than or equal
+            '≥': '>=',      // Greater than or equal
+            '≠': '!=',      // Not equal
+            '∑': 'sum',     // Summation
+            '∏': 'prod'     // Product
+        };
 
-                // Replace asterisk with times symbol before parsing
-                input = input.replace(/\*/g, '\\times ');
-
-                // Try to parse with mathjs
-                const node = mathInstance.parse(input);
-                let latex = node.toTex({
-                    parenthesis: 'keep',
-                    implicit: 'show'
-                });
-                
-                // Replace any remaining multiplication dots with times symbol
-                latex = latex.replace(/\cdot/g, '\\times');
-                
-                return latex;
-            } catch (error) {
-                return input;
-            }
+        function preprocessInput(input) {
+            // Replace Unicode symbols with their text equivalents
+            return input.split('').map(char => symbolMap[char] || char).join('');
         }
 
         function evaluateExpression(input) {
@@ -318,17 +316,15 @@
                     return expressionToEvaluate;
                 }
 
-                // Create evaluator instance with rand function
+                // Preprocess input to handle Unicode symbols
+                const processedExpression = preprocessInput(expressionToEvaluate);
+
+                // Create evaluator instance
                 const evaluator = math.create(math.all);
                 evaluator.config({
                     number: 'number',
                     precision: 14,
                     angle: isRadians ? 'rad' : 'deg'
-                });
-                evaluator.import({
-                    rand: function() {
-                        return Math.random();
-                    }
                 });
 
                 // Set up scope with constants
@@ -338,8 +334,8 @@
                 };
 
                 // Validate and evaluate
-                evaluator.parse(expressionToEvaluate);
-                const result = evaluator.evaluate(expressionToEvaluate, scope);
+                evaluator.parse(processedExpression);
+                const result = evaluator.evaluate(processedExpression, scope);
 
                 // Format result
                 if (typeof result === 'number') {
@@ -429,6 +425,9 @@
 
                 historyEl.appendChild(div);
             });
+
+            // Scroll to bottom of history
+            historyEl.scrollTop = historyEl.scrollHeight;
 
             // Update memory display
             memoryEl.textContent = memory !== 0 ? `M = ${memory}` : '';
@@ -599,6 +598,54 @@
         });
 
         decimalToggleEl.addEventListener('click', toggleDecimalPlaces);
+
+        // Helper functions
+        function toLatex(input) {
+            try {
+                // If expression is just text, return it as-is
+                if (/^[a-zA-Z\s]+$/.test(input)) {
+                    return input;
+                }
+
+                // Process input for parsing
+                let processedInput = preprocessInput(input);
+
+                // Try to parse with mathjs
+                const node = mathInstance.parse(processedInput);
+                let latex = node.toTex({
+                    parenthesis: 'keep',
+                    implicit: 'show',
+                    multiplication: '\\times',
+                    fraction: 'fraction'
+                });
+                
+                // Replace all multiplication symbols consistently
+                latex = latex
+                    .replace(/\\cdot/g, '\\times')
+                    .replace(/\*/g, '\\times')
+                    .replace(/\\mathrm{pi}/g, '\\pi')
+                    .replace(/\\mathrm{e}/g, 'e')
+                    .replace(/\s*\\times\s*/g, '×'); // Use actual × symbol instead of LaTeX command
+
+                // Clean up LaTeX commands
+                latex = latex
+                    .replace(/\\\{/g, '{')
+                    .replace(/\\\}/g, '}')
+                    .replace(/\\pi/g, 'π')
+                    .replace(/\\times/g, '×');
+
+                // If input used Unicode symbols, preserve them in output
+                Object.entries(symbolMap).forEach(([symbol, text]) => {
+                    if (input.includes(symbol)) {
+                        latex = latex.replace(new RegExp(text, 'g'), symbol);
+                    }
+                });
+
+                return latex;
+            } catch (error) {
+                return input;
+            }
+        }
 
         // Initial render
         renderExpressions();
