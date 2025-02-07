@@ -190,12 +190,20 @@
                     return input;
                 }
 
+                // Replace asterisk with times symbol before parsing
+                input = input.replace(/\*/g, '\\times ');
+
                 // Try to parse with mathjs
                 const node = mathInstance.parse(input);
-                return node.toTex({
+                let latex = node.toTex({
                     parenthesis: 'keep',
                     implicit: 'show'
                 });
+                
+                // Replace any remaining multiplication dots with times symbol
+                latex = latex.replace(/\cdot/g, '\\times');
+                
+                return latex;
             } catch (error) {
                 return input;
             }
