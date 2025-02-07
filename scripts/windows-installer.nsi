@@ -3,7 +3,7 @@
 Name "Scientific Calculator"
 OutFile "ScientificCalculator-Setup.exe"
 RequestExecutionLevel user
-InstallDir "$LOCALAPPDATA\AAC Tools\Scientific Calculator"
+InstallDir "$LOCALAPPDATA\Ace Centre\Scientific Calculator"
 
 !define MUI_ICON "..\dist\logo_44I_icon.ico"
 !define MUI_UNICON "..\dist\logo_44I_icon.ico"
@@ -29,6 +29,15 @@ Section "Install"
     SetOutPath "$INSTDIR\calculator"
     File "..\dist\calculator\calcstandalone.html"
     
+    # Create gridset directory and copy files
+    CreateDirectory "$APPDATA\Ace Centre\Scientific Calculator"
+    SetOutPath "$APPDATA\Ace Centre\Scientific Calculator"
+    File "..\dist\gridset\ScientificCalc.gridset"
+    
+    # Copy CreateGridSet files
+    SetOutPath "$INSTDIR\gridset"
+    File /r "..\dist\gridset\*.*"
+    
     # Create shortcuts
     CreateDirectory "$DESKTOP"
     CreateShortCut "$DESKTOP\Scientific Calculator.lnk" "$INSTDIR\calculator\calcstandalone.html" "" "$INSTDIR\logo_44I_icon.ico"
@@ -38,12 +47,15 @@ Section "Install"
     CreateShortCut "$SMPROGRAMS\Scientific Calculator\Scientific Calculator.lnk" "$INSTDIR\calculator\calcstandalone.html" "" "$INSTDIR\logo_44I_icon.ico"
     CreateShortCut "$SMPROGRAMS\Scientific Calculator\Uninstall.lnk" "$INSTDIR\Uninstall.exe"
     
+    # Run CreateGridSet to set up the gridset
+    ExecWait '"$INSTDIR\gridset\CreateGridSet.exe"'
+    
     WriteUninstaller "$INSTDIR\Uninstall.exe"
     
     WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\ScientificCalculator" "DisplayName" "Scientific Calculator"
     WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\ScientificCalculator" "UninstallString" "$\"$INSTDIR\Uninstall.exe$\""
     WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\ScientificCalculator" "DisplayIcon" "$INSTDIR\logo_44I_icon.ico"
-    WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\ScientificCalculator" "Publisher" "AAC Tools"
+    WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\ScientificCalculator" "Publisher" "Ace Centre"
 SectionEnd
 
 Section "Uninstall"
@@ -54,10 +66,15 @@ Section "Uninstall"
     
     Delete "$INSTDIR\calculator\calcstandalone.html"
     RMDir "$INSTDIR\calculator"
+    Delete "$INSTDIR\gridset\*.*"
+    RMDir "$INSTDIR\gridset"
     Delete "$INSTDIR\logo_44I_icon.ico"
     Delete "$INSTDIR\Uninstall.exe"
     RMDir "$INSTDIR"
-    RMDir "$LOCALAPPDATA\AAC Tools"
+    
+    Delete "$APPDATA\Ace Centre\Scientific Calculator\Scientific Calculator.gridset"
+    RMDir "$APPDATA\Ace Centre\Scientific Calculator"
+    RMDir "$LOCALAPPDATA\Ace Centre"
     
     DeleteRegKey HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\ScientificCalculator"
 SectionEnd 

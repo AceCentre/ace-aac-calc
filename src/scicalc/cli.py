@@ -13,7 +13,7 @@ def setup_logging():
     if getattr(sys, 'frozen', False):
         # PyInstaller executable
         print(f"Running as PyInstaller executable: {sys.executable}")
-        script_dir = os.path.join(os.getenv('LOCALAPPDATA'), 'AAC Tools', 'Scientific Calculator')
+        script_dir = os.path.join(os.getenv('LOCALAPPDATA'), 'Ace Centre', 'Scientific Calculator')
     else:
         # Running from source
         print("Running from source")
@@ -49,7 +49,7 @@ def setup_logging():
         import tempfile
         temp_dir = tempfile.gettempdir()
         print(f"Falling back to temp directory: {temp_dir}")
-        log_dir = os.path.join(temp_dir, 'AAC Tools', 'Scientific Calculator', 'logs')
+        log_dir = os.path.join(temp_dir, 'Ace Centre', 'Scientific Calculator', 'logs')
         os.makedirs(log_dir, exist_ok=True)
         log_file = os.path.join(log_dir, 'scicalc.log')
         

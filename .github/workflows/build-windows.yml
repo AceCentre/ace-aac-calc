@@ -14,6 +14,14 @@ jobs:
     
     steps:
     - uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+        
+    - name: Install PyInstaller
+      run: pip install pyinstaller
         
     - name: Install NSIS
       shell: pwsh
@@ -23,10 +31,20 @@ jobs:
     - name: Prepare Files
       shell: pwsh
       run: |
-        # Create dist directory
+        # Create dist directory structure
         New-Item -Path "dist\calculator" -ItemType Directory -Force
+        New-Item -Path "dist\gridset" -ItemType Directory -Force
+        
+        # Copy calculator files
         Copy-Item "calcstandalone\calcstandalone.html" -Destination "dist\calculator\"
         Copy-Item "resources\logo_44I_icon.ico" -Destination "dist\"
+        Copy-Item "assets\ScientificCalc.gridset" -Destination "dist\gridset\"
+        
+        # Build CreateGridSet executable
+        pyinstaller CreateGridSet.py --noupx --noconsole --onedir --clean -y
+        
+        # Copy CreateGridSet files to dist
+        Copy-Item "dist\CreateGridSet\*" -Destination "dist\gridset\" -Recurse
         
     - name: Build Installer
       shell: pwsh
