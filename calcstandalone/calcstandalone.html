@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scientific Calculator</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/11.8.0/math.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+    <style>
+        /* Base styles */
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            margin: 0;
+            padding: 1rem;
+            background: #f8f9fa;
+        }
+
+        .container {
+            max-width: 42rem;
+            margin: 0 auto;
+        }
+
+        .calculator {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+        }
+
+        /* Header styles */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .button {
+            background: none;
+            border: 1px solid #e2e8f0;
+            padding: 0.5rem 1rem;
+            border-radius: 0.375rem;
+            cursor: pointer;
+            font-size: 0.875rem;
+        }
+
+        .button:hover {
+            background: #f8f9fa;
+        }
+
+        /* Expression history */
+        .history {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .expression {
+            border-bottom: 1px solid #e2e8f0;
+            padding: 0.5rem;
+        }
+
+        .expression.active {
+            background: rgba(0, 0, 0, 0.05);
+        }
+
+        .expression .content {
+            text-align: left;
+            padding-left: 0.5rem;
+        }
+
+        .error {
+            color: #dc2626;
+        }
+
+        /* Input area */
+        .input-area {
+            position: relative;
+            background: white;
+            padding: 0.5rem;
+            border-top: 1px solid #e2e8f0;
+        }
+
+        textarea {
+            width: 100%;
+            resize: none;
+            border: none;
+            padding: 0.5rem;
+            font-family: monospace;
+            outline: none;
+            background: transparent;
+        }
+
+        .bracket-preview {
+            position: absolute;
+            font-family: monospace;
+            color: rgba(0, 0, 0, 0.3);
+            pointer-events: none;
+        }
+
+        /* Memory display */
+        .memory {
+            text-align: right;
+            font-size: 0.875rem;
+            color: #6b7280;
+        }
+
+        /* KaTeX overrides */
+        .katex-container .katex {
+            text-align: left;
+        }
+        .katex-container .katex-display {
+            text-align: left;
+            margin: 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="calculator">
+            <div class="header">
+                <button class="button" id="mode-toggle">DEG</button>
+                <button class="button" onclick="showHelp()">Help</button>
+            </div>
+            <div class="history" id="history"></div>
+            <div class="input-area">
+                <textarea 
+                    id="input" 
+                    rows="1" 
+                    placeholder="Enter expression..."
+                    autofocus
+                ></textarea>
+                <div class="bracket-preview" id="bracket-preview"></div>
+            </div>
+            <div class="memory" id="memory"></div>
+        </div>
+    </div>
+
+    <script>
+        // Initialize state
+        let expressions = [{ input: '', result: '', latex: '', isError: false }];
+        let currentIndex = 0;
+        let memory = 0;
+        let isRadians = false;
+
+        // Get DOM elements
+        const historyEl = document.getElementById('history');
+        const inputEl = document.getElementById('input');
+        const bracketPreviewEl = document.getElementById('bracket-preview');
+        const memoryEl = document.getElementById('memory');
+        const modeToggleEl = document.getElementById('mode-toggle');
+
+        // Configure math.js
+        const mathInstance = math.create(math.all);
+        mathInstance.config({
+            number: 'number',
+            precision: 14
+        });
+
+        // Helper functions
+        function toLatex(input) {
+            try {
+                // If expression is just text, return it as-is
+                if (/^[a-zA-Z\s]+$/.test(input)) {
+                    return input;
+                }
+
+                // Try to parse with mathjs
+                const node = mathInstance.parse(input);
+                return node.toTex({
+                    parenthesis: 'keep',
+                    implicit: 'show'
+                });
+            } catch (error) {
+                return input;
+            }
+        }
+
+        function evaluateExpression(input) {
+            try {
+                // Remove trailing equals and validate
+                const expressionToEvaluate = input.replace(/\s*=.*$/, '').trim();
+
+                if (!expressionToEvaluate) {
+                    throw new Error('Empty expression');
+                }
+
+                // Check if input is just text
+                if (/^[a-zA-Z\s]+$/.test(expressionToEvaluate)) {
+                    return expressionToEvaluate;
+                }
+
+                // Create evaluator instance
+                const evaluator = math.create(math.all);
+                evaluator.config({
+                    number: 'number',
+                    precision: 14,
+                    angle: isRadians ? 'rad' : 'deg'
+                });
+
+                // Set up scope with constants
+                const scope = {
+                    pi: Math.PI,
+                    e: Math.E
+                };
+
+                // Validate expression
+                evaluator.parse(expressionToEvaluate);
+
+                // Evaluate
+                const result = evaluator.evaluate(expressionToEvaluate, scope);
+
+                // Format result
+                if (typeof result === 'number') {
+                    if (Number.isInteger(result)) {
+                        return result.toString();
+                    }
+                    return Number(result.toFixed(10)).toString();
+                }
+
+                return result.toString();
+            } catch (error) {
+                throw new Error(error.message || 'Invalid expression');
+            }
+        }
+
+        function updateBracketPreview() {
+            const input = inputEl.value;
+            const cursorPosition = inputEl.selectionStart;
+            const stack = [];
+            const brackets = { '(': ')', '[': ']', '{': '}' };
+            let missingClosing = '';
+
+            // Analyze up to cursor position
+            for (let i = 0; i < cursorPosition; i++) {
+                const char = input[i];
+                if ('([{'.includes(char)) {
+                    stack.push(char);
+                } else if (')]}'.includes(char)) {
+                    if (stack.length > 0 && brackets[stack[stack.length - 1]] === char) {
+                        stack.pop();
+                    }
+                }
+            }
+
+            // Build preview text
+            if (stack.length > 0) {
+                missingClosing = stack.map(char => brackets[char]).reverse().join('');
+                
+                // Position the preview
+                const textBeforeCursor = input.substring(0, cursorPosition);
+                const span = document.createElement('span');
+                span.style.font = window.getComputedStyle(inputEl).font;
+                span.style.visibility = 'hidden';
+                span.style.position = 'absolute';
+                span.textContent = textBeforeCursor;
+                document.body.appendChild(span);
+
+                bracketPreviewEl.textContent = missingClosing;
+                bracketPreviewEl.style.left = `${span.offsetWidth + 8}px`;
+                bracketPreviewEl.style.top = '8px';
+
+                document.body.removeChild(span);
+            } else {
+                bracketPreviewEl.textContent = '';
+            }
+        }
+
+        function renderExpressions() {
+            historyEl.innerHTML = '';
+            expressions.forEach((exp, index) => {
+                const div = document.createElement('div');
+                div.className = `expression${index === currentIndex ? ' active' : ''}`;
+
+                if (exp.input) {
+                    const content = document.createElement('div');
+                    content.className = 'content';
+
+                    if (exp.isError) {
+                        content.innerHTML = `<span class="error">${exp.result}</span>`;
+                    } else {
+                        content.innerHTML = katex.renderToString(
+                            toLatex(exp.input) +
+                            (exp.result && !exp.input.includes('=') && !/^[a-zA-Z\s]+$/.test(exp.input)
+                                ? ` = ${toLatex(exp.result)}`
+                                : ''),
+                            {
+                                throwOnError: false,
+                                displayMode: false,
+                                strict: false,
+                                trust: true
+                            }
+                        );
+                    }
+
+                    div.appendChild(content);
+                }
+
+                historyEl.appendChild(div);
+            });
+
+            // Update memory display
+            memoryEl.textContent = memory !== 0 ? `M = ${memory}` : '';
+        }
+
+        function evaluate() {
+            const currentExp = expressions[currentIndex];
+            if (!currentExp.input.trim()) return;
+
+            try {
+                const result = evaluateExpression(currentExp.input);
+                expressions[currentIndex] = {
+                    ...currentExp,
+                    result: result,
+                    latex: toLatex(currentExp.input),
+                    isError: false
+                };
+
+                // Add new empty expression
+                expressions.push({ input: '', result: '', latex: '', isError: false });
+                currentIndex = expressions.length - 1;
+            } catch (error) {
+                expressions[currentIndex] = {
+                    ...currentExp,
+                    result: error.message,
+                    isError: true
+                };
+            }
+
+            renderExpressions();
+            inputEl.value = expressions[currentIndex].input;
+        }
+
+        function clearWorkpad() {
+            expressions = [{ input: '', result: '', latex: '', isError: false }];
+            currentIndex = 0;
+            inputEl.value = '';
+            renderExpressions();
+        }
+
+        // Memory operations
+        function memoryPlus() {
+            const currentValue = Number.parseFloat(expressions[currentIndex].result) || 0;
+            memory += currentValue;
+            renderExpressions();
+        }
+
+        function memoryMinus() {
+            const currentValue = Number.parseFloat(expressions[currentIndex].result) || 0;
+            memory -= currentValue;
+            renderExpressions();
+        }
+
+        function memoryRecall() {
+            expressions[currentIndex] = {
+                input: memory.toString(),
+                result: memory.toString(),
+                latex: memory.toString(),
+                isError: false
+            };
+            inputEl.value = memory.toString();
+            renderExpressions();
+        }
+
+        function showHelp() {
+            alert(
+                'Keyboard Shortcuts:\n\n' +
+                'Enter - Evaluate expression\n' +
+                'Escape - Clear workpad\n' +
+                '↑ - Previous expression\n' +
+                '↓ - Next expression\n' +
+                'Alt/⌘ + D - Toggle Degrees/Radians\n\n' +
+                'Memory Operations:\n' +
+                'Ctrl/⌘ + P - Memory Plus (M+)\n' +
+                'Ctrl/⌘ + M - Memory Minus (M-)\n' +
+                'Ctrl/⌘ + R - Memory Recall (MR)'
+            );
+        }
+
+        // Event listeners
+        inputEl.addEventListener('input', (e) => {
+            expressions[currentIndex].input = e.target.value;
+            renderExpressions();
+            updateBracketPreview();
+        });
+
+        inputEl.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                evaluate();
+            } else if (e.key === 'Escape') {
+                e.preventDefault();
+                clearWorkpad();
+            } else if (e.key === 'ArrowUp') {
+                e.preventDefault();
+                currentIndex = Math.max(0, currentIndex - 1);
+                inputEl.value = expressions[currentIndex].input;
+                renderExpressions();
+            } else if (e.key === 'ArrowDown') {
+                e.preventDefault();
+                currentIndex = Math.min(expressions.length - 1, currentIndex + 1);
+                inputEl.value = expressions[currentIndex].input;
+                renderExpressions();
+            }
+        });
+
+        document.addEventListener('keydown', (e) => {
+            if ((e.altKey || e.metaKey) && e.key.toLowerCase() === 'd') {
+                e.preventDefault();
+                isRadians = !isRadians;
+                modeToggleEl.textContent = isRadians ? 'RAD' : 'DEG';
+            }
+
+            if (e.ctrlKey || e.metaKey) {
+                switch (e.key) {
+                    case 'p':
+                        e.preventDefault();
+                        memoryPlus();
+                        break;
+                    case 'm':
+                        e.preventDefault();
+                        memoryMinus();
+                        break;
+                    case 'r':
+                        e.preventDefault();
+                        memoryRecall();
+                        break;
+                }
+            }
+        });
+
+        inputEl.addEventListener('click', updateBracketPreview);
+        inputEl.addEventListener('select', updateBracketPreview);
+
+        modeToggleEl.addEventListener('click', () => {
+            isRadians = !isRadians;
+            modeToggleEl.textContent = isRadians ? 'RAD' : 'DEG';
+        });
+
+        // Initial render
+        renderExpressions();
+    </script>
+</body>
+</html>

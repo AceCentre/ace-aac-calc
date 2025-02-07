@@ -54,6 +54,10 @@ jobs:
         # Build web server executable
         uv run pyinstaller --name calcweb --icon=resources/logo_44I_icon.ico src/scicalc/web.py --collect-submodules scicalc --add-data "src/scicalc/templates;templates" --hidden-import="flask" --hidden-import="werkzeug" --noconsole
         
+        # Create calculator directory and copy standalone HTML
+        New-Item -Path "dist\calculator" -ItemType Directory -Force
+        Copy-Item "calcstandalone\calcstandalone.html" -Destination "dist\calculator\"
+        
     - name: Upload PyInstaller executable
       uses: actions/upload-artifact@v4
       with:

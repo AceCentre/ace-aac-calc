@@ -44,6 +44,22 @@ Section "Install"
   WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\ScientificCalculator" "UninstallString" "$\"$INSTDIR\Uninstall.exe$\""
   WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\ScientificCalculator" "DisplayIcon" "$INSTDIR\scicalc.exe"
   WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\ScientificCalculator" "Publisher" "AAC Tools"
+  
+  # Create calculator directory and copy files
+  CreateDirectory "$INSTDIR\calculator"
+  SetOutPath "$INSTDIR\calculator"
+  File "..\dist\calculator\calcstandalone.html"
+  
+  # Create shortcuts
+  CreateDirectory "$DESKTOP"
+  CreateShortCut "$DESKTOP\Scientific Calculator.lnk" "$INSTDIR\scicalc.exe" "" "$INSTDIR\logo_44I_icon.ico"
+  CreateShortCut "$DESKTOP\Calculator Web.lnk" "$INSTDIR\calculator\calcstandalone.html" "" "$INSTDIR\logo_44I_icon.ico"
+  
+  # Start Menu shortcuts
+  CreateDirectory "$SMPROGRAMS\Scientific Calculator"
+  CreateShortCut "$SMPROGRAMS\Scientific Calculator\Scientific Calculator.lnk" "$INSTDIR\scicalc.exe" "" "$INSTDIR\logo_44I_icon.ico"
+  CreateShortCut "$SMPROGRAMS\Scientific Calculator\Calculator Web.lnk" "$INSTDIR\calculator\calcstandalone.html" "" "$INSTDIR\logo_44I_icon.ico"
+  CreateShortCut "$SMPROGRAMS\Scientific Calculator\Uninstall.lnk" "$INSTDIR\uninstall.exe"
 SectionEnd
 
 Section "Uninstall"
@@ -63,6 +79,18 @@ Section "Uninstall"
   Delete "$INSTDIR\Uninstall.exe"
   RMDir "$INSTDIR"
   RMDir "$LOCALAPPDATA\AAC Tools"
+  
+  # Remove calculator files
+  Delete "$INSTDIR\calculator\calcstandalone.html"
+  RMDir "$INSTDIR\calculator"
+  
+  # Remove shortcuts
+  Delete "$DESKTOP\Scientific Calculator.lnk"
+  Delete "$DESKTOP\Calculator Web.lnk"
+  Delete "$SMPROGRAMS\Scientific Calculator\Scientific Calculator.lnk"
+  Delete "$SMPROGRAMS\Scientific Calculator\Calculator Web.lnk"
+  Delete "$SMPROGRAMS\Scientific Calculator\Uninstall.lnk"
+  RMDir "$SMPROGRAMS\Scientific Calculator"
   
   DeleteRegKey HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\ScientificCalculator"
 SectionEnd 
