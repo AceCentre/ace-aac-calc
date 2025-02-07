@@ -388,7 +388,7 @@
         });
 
         inputEl.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter' && !e.shiftKey) {
+            if ((e.key === 'Enter' && !e.shiftKey) || e.key === '=') {
                 e.preventDefault();
                 evaluate();
             } else if (e.key === 'Escape') {
