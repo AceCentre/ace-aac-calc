@@ -82,13 +82,16 @@ def modify_gridset(gridset_path, LocalAppPath):
                         "calculator",
                         "calcstandalone.html"
                     )
-                    calculator_path_escaped = calculator_path.replace("\\", "\\\\")
                     
-                    # Look for the URL parameter and replace it
-                    write_log(f"Searching for URL parameter to replace with: {calculator_path}")
+                    # Convert to proper file URL format
+                    calculator_url = calculator_path.replace("\\", "/")  # Convert backslashes to forward slashes
+                    calculator_url = calculator_url.replace(" ", "%20")  # Encode spaces
+                    calculator_url = f"file:///{calculator_url}"  # Add file:/// prefix
+                    
+                    write_log(f"Searching for URL parameter to replace with: {calculator_url}")
                     new_data = re.sub(
                         r'<Parameter Key="url">%FILEPATHTOREPLACE%</Parameter>',
-                        f'<Parameter Key="url">{calculator_path_escaped}</Parameter>',
+                        f'<Parameter Key="url">{calculator_url}</Parameter>',
                         filedata
                     )
 
