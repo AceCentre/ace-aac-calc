@@ -56,6 +56,28 @@
             flex-direction: column;
             gap: 0.5rem;
             margin-bottom: 1rem;
+            max-height: 200px;  /* Set a fixed maximum height */
+            overflow-y: auto;   /* Enable vertical scrolling */
+            padding-right: 0.5rem; /* Add some padding for the scrollbar */
+        }
+
+        /* Optional: Style the scrollbar for webkit browsers */
+        .history::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .history::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 4px;
+        }
+
+        .history::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 4px;
+        }
+
+        .history::-webkit-scrollbar-thumb:hover {
+            background: #555;
         }
 
         .expression {
