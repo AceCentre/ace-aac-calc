@@ -29,14 +29,17 @@ Section "Install"
     SetOutPath "$INSTDIR\calculator"
     File "..\dist\calculator\calcstandalone.html"
     
-    # Create gridset directory and copy files
+    # Copy CreateGridSet files first
+    SetOutPath "$INSTDIR\gridset"
+    File /r "..\dist\gridset\*.*"
+    
+    # Create gridset directory and copy initial gridset
     CreateDirectory "$APPDATA\Ace Centre\Scientific Calculator"
     SetOutPath "$APPDATA\Ace Centre\Scientific Calculator"
     File "..\dist\gridset\ScientificCalc.gridset"
     
-    # Copy CreateGridSet files
-    SetOutPath "$INSTDIR\gridset"
-    File /r "..\dist\gridset\*.*"
+    # Now run CreateGridSet after files are in place
+    ExecWait '"$INSTDIR\gridset\CreateGridSet.exe"'
     
     # Create shortcuts
     CreateDirectory "$DESKTOP"
@@ -46,9 +49,6 @@ Section "Install"
     CreateDirectory "$SMPROGRAMS\Scientific Calculator"
     CreateShortCut "$SMPROGRAMS\Scientific Calculator\Scientific Calculator.lnk" "$INSTDIR\calculator\calcstandalone.html" "" "$INSTDIR\logo_44I_icon.ico"
     CreateShortCut "$SMPROGRAMS\Scientific Calculator\Uninstall.lnk" "$INSTDIR\Uninstall.exe"
-    
-    # Run CreateGridSet to set up the gridset
-    ExecWait '"$INSTDIR\gridset\CreateGridSet.exe"'
     
     WriteUninstaller "$INSTDIR\Uninstall.exe"
     
