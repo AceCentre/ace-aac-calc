@@ -8,7 +8,7 @@ import traceback
 log_path = os.path.join(
     os.environ.get("APPDATA", ""),
     "Ace Centre",
-    "AACSpeakHelper",
+    "Scientific Calculator",
     "creategridset_log.txt",
 )
 
@@ -89,9 +89,9 @@ def modify_gridset(gridset_path, LocalAppPath):
                         f.write(new_data)
                     write_log(f"Modified XML file: {xml_path}")
 
-        # Updated to keep everything under Ace Centre\AACSpeakHelper
+        # Updated path without AACSpeakHelper
         new_gridset_dir = os.path.join(
-            LocalAppPath, "Ace Centre", "AACSpeakHelper", "Scientific Calculator"
+            LocalAppPath, "Ace Centre", "Scientific Calculator"
         )
         new_gridset_path = os.path.join(new_gridset_dir, "Scientific Calculator.gridset")
 
