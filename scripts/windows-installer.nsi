@@ -44,10 +44,12 @@ Section "Install"
     # Create shortcuts
     CreateDirectory "$DESKTOP"
     CreateShortCut "$DESKTOP\Scientific Calculator.lnk" "$INSTDIR\calculator\calcstandalone.html" "" "$INSTDIR\logo_44I_icon.ico"
+    CreateShortCut "$DESKTOP\Scientific Calculator Grid.lnk" "$APPDATA\Ace Centre\Scientific Calculator\ScientificCalc.gridset" "" "$INSTDIR\logo_44I_icon.ico"
     
     # Start Menu shortcuts
     CreateDirectory "$SMPROGRAMS\Scientific Calculator"
     CreateShortCut "$SMPROGRAMS\Scientific Calculator\Scientific Calculator.lnk" "$INSTDIR\calculator\calcstandalone.html" "" "$INSTDIR\logo_44I_icon.ico"
+    CreateShortCut "$SMPROGRAMS\Scientific Calculator\Scientific Calculator Grid.lnk" "$APPDATA\Ace Centre\Scientific Calculator\ScientificCalc.gridset" "" "$INSTDIR\logo_44I_icon.ico"
     CreateShortCut "$SMPROGRAMS\Scientific Calculator\Uninstall.lnk" "$INSTDIR\Uninstall.exe"
     
     WriteUninstaller "$INSTDIR\Uninstall.exe"
@@ -60,7 +62,9 @@ SectionEnd
 
 Section "Uninstall"
     Delete "$DESKTOP\Scientific Calculator.lnk"
+    Delete "$DESKTOP\Scientific Calculator Grid.lnk"
     Delete "$SMPROGRAMS\Scientific Calculator\Scientific Calculator.lnk"
+    Delete "$SMPROGRAMS\Scientific Calculator\Scientific Calculator Grid.lnk"
     Delete "$SMPROGRAMS\Scientific Calculator\Uninstall.lnk"
     RMDir "$SMPROGRAMS\Scientific Calculator"
     
@@ -72,7 +76,7 @@ Section "Uninstall"
     Delete "$INSTDIR\Uninstall.exe"
     RMDir "$INSTDIR"
     
-    Delete "$APPDATA\Ace Centre\Scientific Calculator\Scientific Calculator.gridset"
+    Delete "$APPDATA\Ace Centre\Scientific Calculator\ScientificCalc.gridset"
     RMDir "$APPDATA\Ace Centre\Scientific Calculator"
     
     DeleteRegKey HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\ScientificCalculator"

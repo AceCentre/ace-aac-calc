@@ -104,7 +104,7 @@ def modify_gridset(gridset_path, LocalAppPath):
         new_gridset_dir = os.path.join(
             LocalAppPath, "Ace Centre", "Scientific Calculator"
         )
-        new_gridset_path = os.path.join(new_gridset_dir, "Scientific Calculator.gridset")
+        new_gridset_path = os.path.join(new_gridset_dir, "ScientificCalc.gridset")
 
         os.makedirs(new_gridset_dir, exist_ok=True)
         write_log(f"Created new gridset directory: {new_gridset_dir}")
@@ -126,8 +126,8 @@ def modify_gridset(gridset_path, LocalAppPath):
         # os.remove(gridset_path)
         write_log(f"Retained original gridset file: {gridset_path}")
 
-        # Create a shortcut on the Desktop
-        create_folder_shortcut(new_gridset_dir, "Scientific Calculator")
+        # Remove shortcut creation - NSIS handles this now
+        # create_folder_shortcut(new_gridset_dir, "Scientific Calculator")
 
     except Exception as e:
         write_log(f"Error during modify_gridset: {e}")
@@ -142,7 +142,7 @@ if __name__ == "__main__":
             app_data_path,
             "Ace Centre",
             "Scientific Calculator",
-            "Scientific Calculator.gridset",
+            "ScientificCalc.gridset",
         )
 
         write_log(f"Gridset location: {gridset_location}")
