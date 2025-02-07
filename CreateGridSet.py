@@ -53,7 +53,7 @@ def create_folder_shortcut(target_folder, shortcut_name):
 def modify_gridset(gridset_path, LocalAppPath):
     if not os.path.exists(gridset_path):
         write_log(f"Error: The gridset file does not exist: {gridset_path}")
-        return  # Exit the function if the file doesn't exist
+        return
 
     try:
         temp_dir = "temp_gridset"
@@ -68,26 +68,37 @@ def modify_gridset(gridset_path, LocalAppPath):
             for filename in filenames:
                 if filename.endswith(".xml"):
                     xml_path = os.path.join(foldername, filename)
+                    write_log(f"Processing XML file: {xml_path}")
 
                     with open(xml_path, "r") as f:
                         filedata = f.read()
 
+                    # Path to the HTML calculator
                     local_app_data_path = os.environ.get("LOCALAPPDATA", "")
-                    full_path_to_exe = os.path.join(
+                    calculator_path = os.path.join(
                         local_app_data_path,
-                        "Programs",
                         "Ace Centre",
-                        "AACSpeakHelper",
-                        "client.exe",
+                        "Scientific Calculator",
+                        "calculator",
+                        "calcstandalone.html"
                     )
-                    full_path_to_exe_escaped = full_path_to_exe.replace("\\", "\\\\")
+                    calculator_path_escaped = calculator_path.replace("\\", "\\\\")
+                    
+                    # Look for the URL parameter and replace it
+                    write_log(f"Searching for URL parameter to replace with: {calculator_path}")
                     new_data = re.sub(
-                        "%FILEPATHTOREPLACE%", full_path_to_exe_escaped, filedata
+                        r'<Parameter Key="url">%FILEPATHTOREPLACE%</Parameter>',
+                        f'<Parameter Key="url">{calculator_path_escaped}</Parameter>',
+                        filedata
                     )
+
+                    if new_data == filedata:
+                        write_log("Warning: No replacements were made in the XML file")
+                    else:
+                        write_log("Successfully replaced URL parameter")
 
                     with open(xml_path, "w") as f:
                         f.write(new_data)
-                    write_log(f"Modified XML file: {xml_path}")
 
         # Updated path without AACSpeakHelper
         new_gridset_dir = os.path.join(
