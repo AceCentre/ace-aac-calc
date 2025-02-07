@@ -11,76 +11,26 @@ on:
 jobs:
   build:
     runs-on: windows-latest
-    env:
-      UV_PATH: C:\Users\runneradmin\.local\bin
-      VENV_PATH: .venv
     
     steps:
     - uses: actions/checkout@v4
-    
-    - name: Set up Python
-      uses: actions/setup-python@v5
-      with:
-        python-version: '3.11'
-        
-    - name: Install and setup uv
-      shell: pwsh
-      run: |
-        iwr https://astral.sh/uv/install.ps1 -useb | iex
-        $env:Path = "$env:UV_PATH;$env:Path"
-        uv --version  # Verify uv is in PATH
-        uv venv  # Create virtual environment
-        
-    - name: Install dependencies
-      shell: pwsh
-      run: |
-        $env:Path = "$env:UV_PATH;$env:Path"
-        .\.venv\Scripts\Activate.ps1
-        uv pip install .[build]
         
     - name: Install NSIS
       shell: pwsh
       run: |
         choco install nsis -y
         
-    - name: Build executable
+    - name: Prepare Files
       shell: pwsh
       run: |
-        $env:Path = "$env:UV_PATH;$env:Path"
-        .\.venv\Scripts\Activate.ps1
-        uv pip install pyinstaller
-        # Build CLI executable
-        uv run pyinstaller --name scicalc --icon=resources/logo_44I_icon.ico src/scicalc/cli.py --collect-submodules scicalc
-        # Build web server executable
-        uv run pyinstaller --name calcweb --icon=resources/logo_44I_icon.ico src/scicalc/web.py --collect-submodules scicalc --add-data "src/scicalc/templates;templates" --hidden-import="flask" --hidden-import="werkzeug" --noconsole
-        
-        # Create calculator directory and copy standalone HTML
+        # Create dist directory
         New-Item -Path "dist\calculator" -ItemType Directory -Force
         Copy-Item "calcstandalone\calcstandalone.html" -Destination "dist\calculator\"
-        
-    - name: Upload PyInstaller executable
-      uses: actions/upload-artifact@v4
-      with:
-        name: pyinstaller-exe
-        path: dist/scicalc/*
+        Copy-Item "resources\logo_44I_icon.ico" -Destination "dist\"
         
     - name: Build Installer
       shell: pwsh
       run: |
-        # Debug: List contents of current and dist directories
-        Write-Host "Current directory contents:"
-        Get-ChildItem -Path .
-        Write-Host "Dist directory contents:"
-        Get-ChildItem -Path dist
-        
-        # Copy icon to dist directory
-        Copy-Item "resources\logo_44I_icon.ico" -Destination "dist\"
-        
-        # Debug: Verify paths
-        Write-Host "Verifying paths:"
-        Write-Host "Executable: $(Resolve-Path 'dist\scicalc\scicalc.exe')"
-        Write-Host "Icon: $(Resolve-Path 'dist\logo_44I_icon.ico')"
-        
         # Run NSIS
         Push-Location scripts
         & 'C:\Program Files (x86)\NSIS\makensis.exe' windows-installer.nsi
@@ -88,11 +38,6 @@ jobs:
         
         # Move installer from scripts to root directory
         Move-Item -Path "scripts\ScientificCalculator-Setup.exe" -Destination "ScientificCalculator-Setup.exe"
-        
-        # Verify installer was created
-        if (-not (Test-Path "ScientificCalculator-Setup.exe")) {
-          throw "Failed to create installer"
-        }
         
     - name: Upload artifact
       uses: actions/upload-artifact@v4
@@ -106,6 +51,4 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       uses: softprops/action-gh-release@v1
       with:
-        files: |
-          ScientificCalculator-Setup.exe
-          dist/scicalc/*
+        files: ScientificCalculator-Setup.exe
