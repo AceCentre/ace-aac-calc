@@ -74,7 +74,6 @@ Section "Uninstall"
     
     Delete "$APPDATA\Ace Centre\Scientific Calculator\Scientific Calculator.gridset"
     RMDir "$APPDATA\Ace Centre\Scientific Calculator"
-    RMDir "$LOCALAPPDATA\Ace Centre"
     
     DeleteRegKey HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\ScientificCalculator"
 SectionEnd 
