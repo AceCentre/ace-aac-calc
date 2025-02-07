@@ -37,6 +37,11 @@
             margin-bottom: 1rem;
         }
 
+        .button-group {
+            display: flex;
+            gap: 0.5rem;
+        }
+
         .button {
             background: none;
             border: 1px solid #e2e8f0;
@@ -138,13 +143,69 @@
             text-align: left;
             margin: 0;
         }
+
+        /* Modal styles */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            overflow-y: auto;  /* Enable scrolling if content is too tall */
+            padding: 1rem;     /* Add padding for small screens */
+        }
+
+        .modal-content {
+            position: relative;
+            background-color: white;
+            margin: min(15vh, 5rem) auto;  /* Adjust margin based on viewport height */
+            padding: 1.5rem;
+            border-radius: 0.5rem;
+            max-width: min(500px, 95%);    /* Responsive width */
+            width: 100%;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .modal-title {
+            font-size: clamp(1rem, 4vw, 1.25rem);  /* Responsive font size */
+            font-weight: 600;
+            margin: 0;
+        }
+
+        .close-button {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: 0.25rem;
+            line-height: 1;
+        }
+
+        .help-content {
+            white-space: pre-line;
+            line-height: 1.5;
+            font-size: clamp(0.875rem, 3vw, 1rem);  /* Responsive font size */
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="calculator">
             <div class="header">
-                <button class="button" id="mode-toggle">DEG</button>
+                <div class="button-group">
+                    <button class="button" id="mode-toggle">DEG</button>
+                    <button class="button" id="decimal-toggle">DP:10</button>
+                </div>
                 <button class="button" onclick="showHelp()">Help</button>
             </div>
             <div class="history" id="history"></div>
@@ -161,12 +222,38 @@
         </div>
     </div>
 
+    <div id="help-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">Calculator Help</h2>
+                <button class="close-button" onclick="closeHelp()">&times;</button>
+            </div>
+            <div class="help-content">
+                Keyboard Shortcuts:
+
+                Enter - Evaluate expression
+                Escape - Clear workpad
+                ↑ - Previous expression
+                ↓ - Next expression
+                Alt/⌘ + D - Toggle Degrees/Radians
+                Alt/⌘ + P - Toggle Decimal Places
+                Ctrl + (0-9) - Set decimal places
+
+                Memory Operations:
+                Ctrl/⌘ + P - Memory Plus (M+)
+                Ctrl/⌘ + M - Memory Minus (M-)
+                Ctrl/⌘ + R - Memory Recall (MR)
+            </div>
+        </div>
+    </div>
+
     <script>
         // Initialize state
         let expressions = [{ input: '', result: '', latex: '', isError: false }];
         let currentIndex = 0;
         let memory = 0;
         let isRadians = false;
+        let decimalPlaces = 10;
 
         // Get DOM elements
         const historyEl = document.getElementById('history');
@@ -174,12 +261,20 @@
         const bracketPreviewEl = document.getElementById('bracket-preview');
         const memoryEl = document.getElementById('memory');
         const modeToggleEl = document.getElementById('mode-toggle');
+        const decimalToggleEl = document.getElementById('decimal-toggle');
 
         // Configure math.js
         const mathInstance = math.create(math.all);
         mathInstance.config({
             number: 'number',
             precision: 14
+        });
+
+        // Add rand function to math.js
+        mathInstance.import({
+            rand: function() {
+                return Math.random();
+            }
         });
 
         // Helper functions
@@ -223,12 +318,17 @@
                     return expressionToEvaluate;
                 }
 
-                // Create evaluator instance
+                // Create evaluator instance with rand function
                 const evaluator = math.create(math.all);
                 evaluator.config({
                     number: 'number',
                     precision: 14,
                     angle: isRadians ? 'rad' : 'deg'
+                });
+                evaluator.import({
+                    rand: function() {
+                        return Math.random();
+                    }
                 });
 
                 // Set up scope with constants
@@ -237,10 +337,8 @@
                     e: Math.E
                 };
 
-                // Validate expression
+                // Validate and evaluate
                 evaluator.parse(expressionToEvaluate);
-
-                // Evaluate
                 const result = evaluator.evaluate(expressionToEvaluate, scope);
 
                 // Format result
@@ -248,7 +346,7 @@
                     if (Number.isInteger(result)) {
                         return result.toString();
                     }
-                    return Number(result.toFixed(10)).toString();
+                    return Number(result.toFixed(decimalPlaces)).toString();
                 }
 
                 return result.toString();
@@ -395,20 +493,36 @@
             renderExpressions();
         }
 
-        function showHelp() {
-            alert(
-                'Keyboard Shortcuts:\n\n' +
-                'Enter - Evaluate expression\n' +
-                'Escape - Clear workpad\n' +
-                '↑ - Previous expression\n' +
-                '↓ - Next expression\n' +
-                'Alt/⌘ + D - Toggle Degrees/Radians\n\n' +
-                'Memory Operations:\n' +
-                'Ctrl/⌘ + P - Memory Plus (M+)\n' +
-                'Ctrl/⌘ + M - Memory Minus (M-)\n' +
-                'Ctrl/⌘ + R - Memory Recall (MR)'
-            );
+        // Add decimal places toggle function
+        function toggleDecimalPlaces() {
+            decimalPlaces = (decimalPlaces + 5) % 20; // Cycle through 0,5,10,15
+            document.getElementById('decimal-toggle').textContent = `DP:${decimalPlaces}`;
+            renderExpressions(); // Re-render to update displayed results
         }
+
+        // Update help text
+        function showHelp() {
+            document.getElementById('help-modal').style.display = 'block';
+        }
+
+        function closeHelp() {
+            document.getElementById('help-modal').style.display = 'none';
+        }
+
+        // Close modal when clicking outside
+        window.onclick = function(event) {
+            const modal = document.getElementById('help-modal');
+            if (event.target === modal) {
+                closeHelp();
+            }
+        }
+
+        // Add Escape key handler for modal
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && document.getElementById('help-modal').style.display === 'block') {
+                closeHelp();
+            }
+        });
 
         // Event listeners
         inputEl.addEventListener('input', (e) => {
@@ -435,13 +549,27 @@
                 inputEl.value = expressions[currentIndex].input;
                 renderExpressions();
             }
-        });
 
-        document.addEventListener('keydown', (e) => {
+            // Direct decimal place setting with Ctrl+number
+            if (e.ctrlKey && !e.altKey && !e.metaKey) {
+                const num = parseInt(e.key);
+                if (!isNaN(num)) {  // If key is a number
+                    e.preventDefault();
+                    decimalPlaces = num;
+                    document.getElementById('decimal-toggle').textContent = `DP:${decimalPlaces}`;
+                    renderExpressions();
+                    return;
+                }
+            }
+
             if ((e.altKey || e.metaKey) && e.key.toLowerCase() === 'd') {
                 e.preventDefault();
                 isRadians = !isRadians;
                 modeToggleEl.textContent = isRadians ? 'RAD' : 'DEG';
+            }
+            if ((e.altKey || e.metaKey) && e.key.toLowerCase() === 'p') {
+                e.preventDefault();
+                toggleDecimalPlaces();
             }
 
             if (e.ctrlKey || e.metaKey) {
@@ -469,6 +597,8 @@
             isRadians = !isRadians;
             modeToggleEl.textContent = isRadians ? 'RAD' : 'DEG';
         });
+
+        decimalToggleEl.addEventListener('click', toggleDecimalPlaces);
 
         // Initial render
         renderExpressions();
