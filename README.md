@@ -1,6 +1,6 @@
-# Scientific Calculator
+# AAC Based Scientific Calculator
 
-A scientific calculator project with multiple implementations:
+A scientific calculator project with multiple implementations - all with the aim to work with AAC Software:
 
 ## Vanilla HTML Calculator
 Located in `/vanilla-html/`
