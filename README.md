@@ -1,6 +1,56 @@
 # Scientific Calculator
 
-A powerful scientific calculator that runs directly in your web browser. The calculator supports standard arithmetic, scientific functions, memory operations, and a history of calculations.
+A scientific calculator project with multiple implementations:
+
+## Vanilla HTML Calculator
+Located in `/vanilla-html/`
+- Single HTML file calculator that runs in any browser
+- No dependencies or installation required
+- Supports keyboard shortcuts and memory operations
+- Windows installer available for Grid 3 integration
+
+### Features
+- Basic arithmetic operations (+, -, *, /)
+- Scientific functions (sin, cos, tan, log, etc.)
+- Memory operations
+- Expression history with recall
+- Adjustable decimal places
+- Radians/Degrees toggle
+
+### Installation
+Download the latest installer from the [Releases](https://github.com/AceCentre/ScientificCalculator/releases) page.
+
+## Python CLI Version
+Located in `/python-cli/`
+- Command-line interface calculator
+- Python implementation with web server option
+- Clipboard integration
+- Designed for AAC software integration
+
+### Features
+- Command-line operation
+- Clipboard monitoring mode
+- Web server interface
+- Full mathematical function support
+
+## React Version
+Located in `/react/`
+- Modern React implementation
+- Component-based architecture
+- Enhanced UI/UX
+- Work in progress
+
+## Documentation
+See individual README files in each project directory for specific documentation:
+- [Vanilla HTML Documentation](vanilla-html/README.md)
+- [Python CLI Documentation](python-cli/README.md)
+- [React Documentation](react/README.md)
+
+## Development
+Each implementation has its own development setup. See the respective README files for details.
+
+## License
+[GPL-3.0](LICENSE)
 
 ## Key Features
 

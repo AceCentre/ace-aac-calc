@@ -36,12 +36,12 @@ jobs:
         New-Item -Path "dist\gridset" -ItemType Directory -Force
         
         # Copy calculator files
-        Copy-Item "calcstandalone\calcstandalone.html" -Destination "dist\calculator\"
+        Copy-Item "vanilla-html\calcstandalone.html" -Destination "dist\calculator\"
         Copy-Item "resources\logo_44I_icon.ico" -Destination "dist\"
         Copy-Item "resources\ScientificCalc.gridset" -Destination "dist\gridset\"
         
         # Build CreateGridSet executable
-        pyinstaller CreateGridSet.py --noupx --noconsole --onedir --clean -y
+        pyinstaller vanilla-html\CreateGridSet.py --noupx --noconsole --onedir --clean -y
         
         # Copy CreateGridSet files to dist
         Copy-Item "dist\CreateGridSet\*" -Destination "dist\gridset\" -Recurse
