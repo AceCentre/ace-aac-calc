@@ -14,8 +14,76 @@ Located in `/vanilla-html/`
 - Scientific functions (sin, cos, tan, log, etc.)
 - Memory operations
 - Expression history with recall
-- Adjustable decimal places
+- Adjustable decimal places (0-15)
 - Radians/Degrees toggle
+- Unicode math symbol support
+- Algebraic expressions
+- Random number generation
+- Bracket completion preview
+
+### Input Methods
+
+The calculator accepts both text and Unicode math symbols:
+
+| Text Input | Symbol Input | Description |
+|------------|-------------|-------------|
+| `sqrt(x)`  | `√x`        | Square root |
+| `pi`       | `π`         | Pi constant |
+| `*`        | `×`         | Multiplication |
+| `/`        | `÷`         | Division |
+| `^2`       | `²`         | Square |
+| `^3`       | `³`         | Cube |
+| `e`        | `ℯ`         | Euler's number |
+
+### Example Expressions
+
+#### Basic Math
+```
+2 + 2 = 4
+1/2 × 20 = 10
+√16 = 4
+π × 2 = 6.283185307
+```
+
+#### Scientific Functions
+```
+sin(45) = 0.7071067812
+log(100) = 2
+√(π) = 1.7724538509
+```
+
+#### Random Numbers
+```
+rand() = 0.7324846372         # Random number between 0-1
+floor(rand() * 6) + 1 = 4    # Roll a die (1-6)
+floor(rand() * 100) + 1 = 42 # Random number 1-100
+```
+
+#### Algebraic Expressions
+```
+x^2 + 2x + 1                 # Quadratic expression
+2x + 2y                      # Linear expression with variables
+```
+
+#### Memory Operations
+- Store current result: Ctrl/⌘ + P (M+)
+- Subtract from memory: Ctrl/⌘ + M (M-)
+- Recall memory: Ctrl/⌘ + R (MR)
+
+### Keyboard Shortcuts
+- `Enter` or `=` - Evaluate expression
+- `Escape` - Clear workpad
+- `↑` - Previous expression
+- `↓` - Next expression
+- `Alt/⌘ + D` - Toggle Degrees/Radians
+- `Ctrl + (0-9)` - Set decimal places
+
+### Tips
+- Brackets are automatically completed as you type
+- History is scrollable and expressions can be recalled
+- Click the DP button or use Ctrl + number to set decimal places
+- Toggle between degrees/radians for trigonometry
+- Unicode symbols can be typed directly or using text equivalents
 
 ### Installation
 Download the latest installer from the [Releases](https://github.com/AceCentre/ScientificCalculator/releases) page.
