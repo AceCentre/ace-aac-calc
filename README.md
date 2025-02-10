@@ -5,7 +5,7 @@
 A scientific calculator project with multiple implementations - all with the aim to work with AAC Software:
 
 1. [Vanilla HTML Calculator](#vanilla-html-calculator). This is the current main way we recommend to use this. Its offline, works in the browser and as such as a webview in a AAC software system such as the Grid. Try it [here](https://raw.githack.com/AceCentre/ace-aac-calc/main/vanilla-html/calcstandalone.html)
-2. [Python CLI Calculator](#python-cli-version). This is a command line calculator that can be used in any system that can execute Python scripts. It requires either a pythoon interpreter or a comppiled version. We build this together with a web server that can be used to serve the calculator. 
+2. [Python CLI Calculator](#python-cli-version). This is a command line calculator that can be used in any system that can execute Python scripts. It requires either a pythoon interpreter or a comppiled version. We build this together with a web server that can be used to serve the calculator. **IF you want/must have a calculator with minimal screen space eg. in the message bar you need this**
 3. [React Version](#react-version). This is a modern React implementation of the calculator. It is a work in progress and does not yet have all the features of the other implementations.
 
 
