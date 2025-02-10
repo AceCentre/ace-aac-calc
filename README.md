@@ -1,6 +1,6 @@
 # AAC Based Scientific Calculator
 
-![AAC Calculator](./resources/logo.png)
+<img src="./resources/logo.png" width="50" alt="AAC Calculator">
 
 A scientific calculator project with multiple implementations - all with the aim to work with AAC Software:
 
