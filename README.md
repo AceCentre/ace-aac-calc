@@ -1,5 +1,7 @@
 # AAC Based Scientific Calculator
 
+![AAC Calculator](./resources/logo.png)
+
 A scientific calculator project with multiple implementations - all with the aim to work with AAC Software:
 
 1. [Vanilla HTML Calculator](#vanilla-html-calculator). This is the current main way we recommend to use this. Its offline, works in the browser and as such as a webview in a AAC software system such as the Grid. 
