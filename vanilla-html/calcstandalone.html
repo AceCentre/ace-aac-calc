@@ -297,7 +297,25 @@
             '∏': 'prod'     // Product
         };
 
+        // Add reverse mapping for text to symbols
+        const reverseSymbolMap = {
+            'sqrt': '√',
+            'cbrt': '∛',
+            'pi': 'π',
+            'infinity': '∞',
+            'e': 'ℯ'
+        };
+
+        // List of functions that should remain as text
+        const textOnlyFunctions = ['rand', 'floor', 'ceil', 'round', 'abs', 'sin', 'cos', 'tan'];
+
         function preprocessInput(input) {
+            // Remove the 'x' multiplication handling
+            // input = input.replace(/(\d|\))\s*x\s*(\d|\()/gi, '$1*$2');
+            
+            // Add parentheses after √ if not already present
+            input = input.replace(/√(\d+(?:\.\d+)?)/g, 'sqrt($1)');
+            
             // Replace Unicode symbols with their text equivalents
             return input.split('').map(char => symbolMap[char] || char).join('');
         }
@@ -327,15 +345,38 @@
                     angle: isRadians ? 'rad' : 'deg'
                 });
 
-                // Set up scope with constants
-                const scope = {
+                // Add rand function to evaluator
+                evaluator.import({
+                    rand: function() {
+                        return Math.random();
+                    }
+                });
+
+                // Check if expression contains variables (excluding function names and constants)
+                const hasVariables = /[a-zA-Z]/.test(processedExpression) && 
+                                   !textOnlyFunctions.some(func => processedExpression.includes(func)) &&
+                                   !processedExpression.includes('pi') &&
+                                   !processedExpression.includes('e');
+
+                if (hasVariables) {
+                    try {
+                        // Parse the expression first to validate it
+                        const node = evaluator.parse(processedExpression);
+                        // Try to simplify the expression
+                        const simplified = evaluator.simplify(processedExpression);
+                        return simplified.toString();
+                    } catch (e) {
+                        // If simplification fails, return the original expression
+                        return processedExpression;
+                    }
+                }
+
+                // For numeric expressions, evaluate as before
+                evaluator.parse(processedExpression);
+                const result = evaluator.evaluate(processedExpression, {
                     pi: Math.PI,
                     e: Math.E
-                };
-
-                // Validate and evaluate
-                evaluator.parse(processedExpression);
-                const result = evaluator.evaluate(processedExpression, scope);
+                });
 
                 // Format result
                 if (typeof result === 'number') {
@@ -621,18 +662,36 @@
                 
                 // Replace all multiplication symbols consistently
                 latex = latex
-                    .replace(/\\cdot/g, '\\times')
-                    .replace(/\*/g, '\\times')
-                    .replace(/\\mathrm{pi}/g, '\\pi')
-                    .replace(/\\mathrm{e}/g, 'e')
-                    .replace(/\s*\\times\s*/g, '×'); // Use actual × symbol instead of LaTeX command
+                    .replace(/\\cdot/g, '×')
+                    .replace(/\*/g, '×')
+                    .replace(/\\mathrm{pi}/g, 'π')
+                    .replace(/\\mathrm{e}/g, 'ℯ')
+                    .replace(/\s*\\times\s*/g, '×')
+                    .replace(/\\sqrt/g, '√')
+                    .replace(/\\cbrt/g, '∛')
+                    // Clean up floor function
+                    .replace(/\\left\\lfloor/g, 'floor(')
+                    .replace(/\\right\\rfloor/g, ')')
+                    // Clean up ceil function
+                    .replace(/\\left\\lceil/g, 'ceil(')
+                    .replace(/\\right\\rceil/g, ')');
 
-                // Clean up LaTeX commands
+                // Clean up LaTeX commands and handle special cases
                 latex = latex
                     .replace(/\\\{/g, '{')
                     .replace(/\\\}/g, '}')
                     .replace(/\\pi/g, 'π')
-                    .replace(/\\times/g, '×');
+                    .replace(/\\times/g, '×')
+                    .replace(/\\left\(/g, '(')
+                    .replace(/\\right\)/g, ')')
+                    // Handle exponential notation
+                    .replace(/(\d+)e\+?(-?\d+)/gi, '$1×10^$2');
+
+                // Keep text functions as they are
+                textOnlyFunctions.forEach(func => {
+                    const regex = new RegExp(`\\\\mathrm{${func}}`, 'g');
+                    latex = latex.replace(regex, func);
+                });
 
                 // If input used Unicode symbols, preserve them in output
                 Object.entries(symbolMap).forEach(([symbol, text]) => {
