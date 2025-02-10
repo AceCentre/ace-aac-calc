@@ -247,3 +247,14 @@ Each implementation has its own development setup. Its pretty obvious. Read the 
 
 ## License
 [GPL-3.0](LICENSE)
+
+
+## Credits
+
+- Will Wade @ [AceCentre](https://www.acecentre.org.uk)
+- Marion & katie Stanton @ [Candle](https://candleaac.com) for nudging me towards how to do this
+- [Desmos](https://www.desmos.com/) for the math rendering engine inspiration (its still good but there is no clear shortcut and its not easy to run offline)
+
+## User Testing / Inspiration
+
+- Patrick McCabe and Failbroome Academy for the initial idea and testing
