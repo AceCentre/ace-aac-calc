@@ -26,8 +26,13 @@ Section "Install"
     
     # Create calculator directory and copy files
     CreateDirectory "$INSTDIR\calculator"
+    CreateDirectory "$INSTDIR\calculator\lib"
     SetOutPath "$INSTDIR\calculator"
     File "..\dist\calculator\calcstandalone.html"
+    SetOutPath "$INSTDIR\calculator\lib"
+    File "..\dist\calculator\lib\math.js"
+    File "..\dist\calculator\lib\katex.min.css"
+    File "..\dist\calculator\lib\katex.min.js"
     
     # Copy CreateGridSet files first
     SetOutPath "$INSTDIR\gridset"
@@ -69,6 +74,10 @@ Section "Uninstall"
     RMDir "$SMPROGRAMS\Scientific Calculator"
     
     Delete "$INSTDIR\calculator\calcstandalone.html"
+    Delete "$INSTDIR\calculator\lib\math.js"
+    Delete "$INSTDIR\calculator\lib\katex.min.css"
+    Delete "$INSTDIR\calculator\lib\katex.min.js"
+    RMDir "$INSTDIR\calculator\lib"
     RMDir "$INSTDIR\calculator"
     Delete "$INSTDIR\gridset\*.*"
     RMDir "$INSTDIR\gridset"

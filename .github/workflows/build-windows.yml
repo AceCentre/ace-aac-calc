@@ -33,10 +33,12 @@ jobs:
       run: |
         # Create dist directory structure
         New-Item -Path "dist\calculator" -ItemType Directory -Force
+        New-Item -Path "dist\calculator\lib" -ItemType Directory -Force
         New-Item -Path "dist\gridset" -ItemType Directory -Force
         
-        # Copy calculator files
+        # Copy calculator files and libraries
         Copy-Item "vanilla-html\calcstandalone.html" -Destination "dist\calculator\"
+        Copy-Item "vanilla-html\lib\*" -Destination "dist\calculator\lib\"
         Copy-Item "resources\logo_44I_icon.ico" -Destination "dist\"
         Copy-Item "resources\ScientificCalc.gridset" -Destination "dist\gridset\"
         
