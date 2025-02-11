@@ -196,6 +196,13 @@
             line-height: 1.5;
             font-size: clamp(0.875rem, 3vw, 1rem);  /* Responsive font size */
         }
+
+        .line-number {
+            color: #999;
+            font-size: 0.8em;
+            margin-right: 0.5rem;
+            user-select: none;
+        }
     </style>
 </head>
 <body>
@@ -329,13 +336,22 @@
                     throw new Error('Empty expression');
                 }
 
+                // Handle @ references
+                let processedExpression = expressionToEvaluate.replace(/@(\d+)/g, (match, lineNum) => {
+                    const index = parseInt(lineNum) - 1;
+                    if (index >= 0 && index < expressions.length && expressions[index].result) {
+                        return `(${expressions[index].result})`;
+                    }
+                    throw new Error(`Invalid reference: ${match}`);
+                });
+
                 // Check if input is just text
-                if (/^[a-zA-Z\s]+$/.test(expressionToEvaluate)) {
-                    return expressionToEvaluate;
+                if (/^[a-zA-Z\s]+$/.test(processedExpression)) {
+                    return processedExpression;
                 }
 
                 // Preprocess input to handle Unicode symbols
-                const processedExpression = preprocessInput(expressionToEvaluate);
+                const processedExpressionWithSymbols = preprocessInput(processedExpression);
 
                 // Create evaluator instance
                 const evaluator = math.create(math.all);
@@ -353,27 +369,27 @@
                 });
 
                 // Check if expression contains variables (excluding function names and constants)
-                const hasVariables = /[a-zA-Z]/.test(processedExpression) && 
-                                   !textOnlyFunctions.some(func => processedExpression.includes(func)) &&
-                                   !processedExpression.includes('pi') &&
-                                   !processedExpression.includes('e');
+                const hasVariables = /[a-zA-Z]/.test(processedExpressionWithSymbols) && 
+                                   !textOnlyFunctions.some(func => processedExpressionWithSymbols.includes(func)) &&
+                                   !processedExpressionWithSymbols.includes('pi') &&
+                                   !processedExpressionWithSymbols.includes('e');
 
                 if (hasVariables) {
                     try {
                         // Parse the expression first to validate it
-                        const node = evaluator.parse(processedExpression);
+                        const node = evaluator.parse(processedExpressionWithSymbols);
                         // Try to simplify the expression
-                        const simplified = evaluator.simplify(processedExpression);
+                        const simplified = evaluator.simplify(processedExpressionWithSymbols);
                         return simplified.toString();
                     } catch (e) {
                         // If simplification fails, return the original expression
-                        return processedExpression;
+                        return processedExpressionWithSymbols;
                     }
                 }
 
                 // For numeric expressions, evaluate as before
-                evaluator.parse(processedExpression);
-                const result = evaluator.evaluate(processedExpression, {
+                evaluator.parse(processedExpressionWithSymbols);
+                const result = evaluator.evaluate(processedExpressionWithSymbols, {
                     pi: Math.PI,
                     e: Math.E
                 });
@@ -444,10 +460,16 @@
                     const content = document.createElement('div');
                     content.className = 'content';
 
+                    // Add line number
+                    const lineNumber = document.createElement('span');
+                    lineNumber.className = 'line-number';
+                    lineNumber.textContent = `${index + 1}. `;
+                    content.appendChild(lineNumber);
+
                     if (exp.isError) {
-                        content.innerHTML = `<span class="error">${exp.result}</span>`;
+                        content.innerHTML += `<span class="error">${exp.result}</span>`;
                     } else {
-                        content.innerHTML = katex.renderToString(
+                        content.innerHTML += katex.renderToString(
                             toLatex(exp.input) +
                             (exp.result && !exp.input.includes('=') && !/^[a-zA-Z\s]+$/.test(exp.input)
                                 ? ` = ${toLatex(exp.result)}`
@@ -648,6 +670,22 @@
                     return input;
                 }
 
+                // Show the expanded version if there are @ references
+                let expandedInput = input;
+                if (input.includes('@')) {
+                    expandedInput = input.replace(/@(\d+)/g, (match, lineNum) => {
+                        const index = parseInt(lineNum) - 1;
+                        if (index >= 0 && index < expressions.length && expressions[index].result) {
+                            return `(${expressions[index].result})`;
+                        }
+                        return match;
+                    });
+                    // Only show expanded version if it's different from input
+                    if (expandedInput !== input) {
+                        input = `${input} → ${expandedInput}`;
+                    }
+                }
+
                 // Process input for parsing
                 let processedInput = preprocessInput(input);
 
@@ -657,7 +695,8 @@
                     parenthesis: 'keep',
                     implicit: 'show',
                     multiplication: '\\times',
-                    fraction: 'fraction'
+                    fraction: 'fraction',
+                    notation: 'fixed'  // Use fixed notation instead of exponential
                 });
                 
                 // Replace all multiplication symbols consistently
@@ -684,20 +723,18 @@
                     .replace(/\\times/g, '×')
                     .replace(/\\left\(/g, '(')
                     .replace(/\\right\)/g, ')')
-                    // Handle exponential notation
-                    .replace(/(\d+)e\+?(-?\d+)/gi, '$1×10^$2');
+                    // Format large numbers without scientific notation
+                    .replace(/(\d+)e\+?(-?\d+)/gi, (match, num, exp) => {
+                        // If it's a user-entered E notation, keep it
+                        if (input.toUpperCase().includes('E')) return match;
+                        // Otherwise, show the full number
+                        return num.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+                    });
 
                 // Keep text functions as they are
                 textOnlyFunctions.forEach(func => {
                     const regex = new RegExp(`\\\\mathrm{${func}}`, 'g');
                     latex = latex.replace(regex, func);
-                });
-
-                // If input used Unicode symbols, preserve them in output
-                Object.entries(symbolMap).forEach(([symbol, text]) => {
-                    if (input.includes(symbol)) {
-                        latex = latex.replace(new RegExp(text, 'g'), symbol);
-                    }
                 });
 
                 return latex;
