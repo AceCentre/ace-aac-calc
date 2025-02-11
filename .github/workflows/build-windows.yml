@@ -34,14 +34,21 @@ jobs:
         # Create dist directory structure
         New-Item -Path "dist\calculator" -ItemType Directory -Force
         New-Item -Path "dist\calculator\lib" -ItemType Directory -Force
-        New-Item -Path "dist\calculator\lib\fonts" -ItemType Directory -Force
-        New-Item -Path "dist\gridset" -ItemType Directory -Force
         
-        # Copy calculator files and libraries
+        # Copy main library files first
         Copy-Item "vanilla-html\calcstandalone.html" -Destination "dist\calculator\"
-        Copy-Item "vanilla-html\lib\*" -Destination "dist\calculator\lib\"
+        Copy-Item "vanilla-html\lib\*.js" -Destination "dist\calculator\lib\"
+        Copy-Item "vanilla-html\lib\*.css" -Destination "dist\calculator\lib\"
+        
+        # Then handle fonts separately
+        New-Item -Path "dist\calculator\lib\fonts" -ItemType Directory -Force
         Copy-Item "vanilla-html\lib\fonts\*" -Destination "dist\calculator\lib\fonts\"
+        
+        # Copy other resources
         Copy-Item "resources\logo_44I_icon.ico" -Destination "dist\"
+        
+        # Handle gridset
+        New-Item -Path "dist\gridset" -ItemType Directory -Force
         Copy-Item "resources\ScientificCalc.gridset" -Destination "dist\gridset\"
         
         # Build CreateGridSet executable
