@@ -258,3 +258,33 @@ Each implementation has its own development setup. Its pretty obvious. Read the 
 ## User Testing / Inspiration
 
 - Patrick McCabe and Failbroome Academy for the initial idea and testing
+
+### Line References with @
+You can reference previous results using the @ symbol followed by the line number. Each line in the history is numbered for easy reference.
+
+```
+1. 10 + 5 = 15
+2. 20 + 12.5 = 32.5
+3. @2−@1 → (32.5)−(15) = 17.5
+```
+
+#### Examples
+- `@1` references the result from line 1
+- `1000 - @3` subtracts line 3's result from 1000
+- `@2 * @1` multiplies results from lines 2 and 1
+- `floor(@1 * 6)` uses line 1's result in a function
+
+The calculator will show both your expression with @ references and the expanded calculation with actual values.
+
+### Keyboard Shortcuts
+- `Enter` or `=` - Evaluate expression
+- `Escape` - Clear workpad
+- `↑` - Previous expression
+- `↓` - Next expression
+- `Alt/⌘ + D` - Toggle Degrees/Radians
+- `Ctrl + (0-9)` - Set decimal places
+
+### Memory Operations
+- Store current result: Ctrl/⌘ + P (M+)
+- Subtract from memory: Ctrl/⌘ + M (M-)
+- Recall memory: Ctrl/⌘ + R (MR)
