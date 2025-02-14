@@ -10,6 +10,10 @@ A scientific calculator project with multiple implementations - all with the aim
 
 
 
+https://github.com/user-attachments/assets/b5c1cbdd-1850-4be5-aa9d-2be025a8bceb
+
+
+
 ## Vanilla HTML Calculator
 Located in `/vanilla-html/`
 
