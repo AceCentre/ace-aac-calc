@@ -43,6 +43,10 @@ export function KeyboardShortcuts() {
                   <span>Toggle Degrees/Radians</span>
                   <kbd className="rounded bg-muted px-2 py-0.5">Alt + D</kbd>
                 </div>
+                <div className="flex justify-between">
+                  <span>Copy Highlighted Expression</span>
+                  <kbd className="rounded bg-muted px-2 py-0.5">Ctrl/Cmd + C</kbd>
+                </div>
               </div>
             </div>
             <div className="space-y-4">
@@ -93,4 +97,3 @@ export function KeyboardShortcuts() {
     </Dialog>
   )
 }
-

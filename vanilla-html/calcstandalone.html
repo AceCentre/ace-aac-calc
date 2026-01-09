@@ -245,6 +245,7 @@
                 Alt/⌘ + D - Toggle Degrees/Radians
                 Alt/⌘ + P - Toggle Decimal Places
                 Ctrl + (0-9) - Set decimal places
+                Ctrl/⌘ + C - Copy highlighted expression
 
                 Memory Operations:
                 Ctrl/⌘ + P - Memory Plus (M+)
@@ -571,6 +572,44 @@
             document.getElementById('help-modal').style.display = 'none';
         }
 
+        function getExpressionCopyText(exp) {
+            if (!exp || !exp.input) {
+                return '';
+            }
+            if (exp.isError) {
+                return exp.result || exp.input;
+            }
+            if (exp.result && !exp.input.includes('=') && !/^[a-zA-Z\s]+$/.test(exp.input)) {
+                return `${exp.input} = ${exp.result}`;
+            }
+            return exp.input;
+        }
+
+        function copyToClipboard(text) {
+            if (!text) {
+                return;
+            }
+
+            const fallbackCopy = () => {
+                const textarea = document.createElement('textarea');
+                textarea.value = text;
+                textarea.setAttribute('readonly', 'true');
+                textarea.style.position = 'absolute';
+                textarea.style.left = '-9999px';
+                document.body.appendChild(textarea);
+                textarea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textarea);
+            };
+
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(text).catch(fallbackCopy);
+                return;
+            }
+
+            fallbackCopy();
+        }
+
         // Close modal when clicking outside
         window.onclick = function(event) {
             const modal = document.getElementById('help-modal');
@@ -610,6 +649,16 @@
                 currentIndex = Math.min(expressions.length - 1, currentIndex + 1);
                 inputEl.value = expressions[currentIndex].input;
                 renderExpressions();
+            }
+
+            if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'c') {
+                const selection = window.getSelection ? window.getSelection().toString() : '';
+                const inputSelectionEmpty = inputEl.selectionStart === inputEl.selectionEnd;
+                if (!selection && inputSelectionEmpty) {
+                    e.preventDefault();
+                    copyToClipboard(getExpressionCopyText(expressions[currentIndex]));
+                    return;
+                }
             }
 
             // Direct decimal place setting with Ctrl+number

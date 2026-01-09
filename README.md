@@ -111,6 +111,7 @@ The calculator will show both your expression with @ references and the expanded
 - `↓` - Next expression
 - `Alt/⌘ + D` - Toggle Degrees/Radians
 - `Ctrl + (0-9)` - Set decimal places
+- `Ctrl/⌘ + C` - Copy highlighted expression
 
 ### Tips
 - Brackets are automatically completed as you type
@@ -281,4 +282,3 @@ Each implementation has its own development setup. Its pretty obvious. Read the 
 ## User Testing / Inspiration
 
 - Patrick McCabe and Failbroome Academy for the initial idea and testing
-

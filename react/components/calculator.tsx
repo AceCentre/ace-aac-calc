@@ -161,6 +161,32 @@ export function Calculator() {
 
   // Handle keyboard shortcuts
   useEffect(() => {
+    const getExpressionCopyText = (exp: Expression) => {
+      if (!exp.input) return ""
+      if (exp.isError) return exp.result || exp.input
+      if (exp.result && !exp.input.includes("=") && !/^[a-zA-Z\s]+$/.test(exp.input)) {
+        return `${exp.input} = ${exp.result}`
+      }
+      return exp.input
+    }
+
+    const copyToClipboard = async (text: string) => {
+      if (!text) return
+      try {
+        await navigator.clipboard.writeText(text)
+      } catch (error) {
+        const textarea = document.createElement("textarea")
+        textarea.value = text
+        textarea.setAttribute("readonly", "true")
+        textarea.style.position = "absolute"
+        textarea.style.left = "-9999px"
+        document.body.appendChild(textarea)
+        textarea.select()
+        document.execCommand("copy")
+        document.body.removeChild(textarea)
+      }
+    }
+
     const handleKeyDown = (e: KeyboardEvent) => {
       if ((e.key === "Enter" || e.key === "Return") && !e.shiftKey) {
         e.preventDefault()
@@ -185,6 +211,28 @@ export function Calculator() {
 
       // Memory operations
       if (e.ctrlKey || e.metaKey) {
+        if (e.key.toLowerCase() === "c") {
+          const selection = window.getSelection()?.toString() ?? ""
+          const activeElement = document.activeElement
+          const activeInputElement =
+            activeElement instanceof HTMLInputElement || activeElement instanceof HTMLTextAreaElement
+              ? activeElement
+              : null
+          const inputSelectionEmpty =
+            !activeInputElement ||
+            activeInputElement.selectionStart === null ||
+            activeInputElement.selectionEnd === null ||
+            activeInputElement.selectionStart === activeInputElement.selectionEnd
+
+          if (!selection && inputSelectionEmpty) {
+            const text = getExpressionCopyText(expressions[currentIndex])
+            if (text) {
+              e.preventDefault()
+              copyToClipboard(text)
+            }
+          }
+          return
+        }
         switch (e.key) {
           case "p":
             e.preventDefault()
@@ -399,4 +447,3 @@ export function Calculator() {
     </div>
   )
 }
-
