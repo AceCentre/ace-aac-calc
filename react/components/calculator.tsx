@@ -164,6 +164,15 @@ export function Calculator() {
     const getExpressionCopyText = (exp: Expression) => {
       if (!exp.input) return ""
       if (exp.isError) return exp.result || exp.input
+      if (exp.result) {
+        return exp.result
+      }
+      return exp.input
+    }
+
+    const getExpressionFullCopyText = (exp: Expression) => {
+      if (!exp.input) return ""
+      if (exp.isError) return exp.result || exp.input
       if (exp.result && !exp.input.includes("=") && !/^[a-zA-Z\s]+$/.test(exp.input)) {
         return `${exp.input} = ${exp.result}`
       }
@@ -211,7 +220,8 @@ export function Calculator() {
 
       // Memory operations
       if (e.ctrlKey || e.metaKey) {
-        if (e.key.toLowerCase() === "c") {
+        const key = e.key.toLowerCase()
+        if (key === "c" || (key === "l" && e.shiftKey)) {
           const selection = window.getSelection()?.toString() ?? ""
           const activeElement = document.activeElement
           const activeInputElement =
@@ -225,7 +235,10 @@ export function Calculator() {
             activeInputElement.selectionStart === activeInputElement.selectionEnd
 
           if (!selection && inputSelectionEmpty) {
-            const text = getExpressionCopyText(expressions[currentIndex])
+            const text =
+              key === "l" && e.shiftKey
+                ? getExpressionFullCopyText(expressions[currentIndex])
+                : getExpressionCopyText(expressions[currentIndex])
             if (text) {
               e.preventDefault()
               copyToClipboard(text)

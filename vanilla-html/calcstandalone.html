@@ -246,6 +246,7 @@
                 Alt/⌘ + P - Toggle Decimal Places
                 Ctrl + (0-9) - Set decimal places
                 Ctrl/⌘ + C - Copy highlighted expression
+                Ctrl/⌘ + Shift + L - Copy full expression
 
                 Memory Operations:
                 Ctrl/⌘ + P - Memory Plus (M+)
@@ -579,6 +580,19 @@
             if (exp.isError) {
                 return exp.result || exp.input;
             }
+            if (exp.result) {
+                return exp.result;
+            }
+            return exp.input;
+        }
+
+        function getExpressionFullCopyText(exp) {
+            if (!exp || !exp.input) {
+                return '';
+            }
+            if (exp.isError) {
+                return exp.result || exp.input;
+            }
             if (exp.result && !exp.input.includes('=') && !/^[a-zA-Z\s]+$/.test(exp.input)) {
                 return `${exp.input} = ${exp.result}`;
             }
@@ -651,12 +665,15 @@
                 renderExpressions();
             }
 
-            if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'c') {
+            if ((e.ctrlKey || e.metaKey) && (e.key.toLowerCase() === 'c' || (e.key.toLowerCase() === 'l' && e.shiftKey))) {
                 const selection = window.getSelection ? window.getSelection().toString() : '';
                 const inputSelectionEmpty = inputEl.selectionStart === inputEl.selectionEnd;
                 if (!selection && inputSelectionEmpty) {
                     e.preventDefault();
-                    copyToClipboard(getExpressionCopyText(expressions[currentIndex]));
+                    const text = e.key.toLowerCase() === 'l' && e.shiftKey
+                        ? getExpressionFullCopyText(expressions[currentIndex])
+                        : getExpressionCopyText(expressions[currentIndex]);
+                    copyToClipboard(text);
                     return;
                 }
             }

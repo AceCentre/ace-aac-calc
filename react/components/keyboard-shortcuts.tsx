@@ -47,6 +47,10 @@ export function KeyboardShortcuts() {
                   <span>Copy Highlighted Expression</span>
                   <kbd className="rounded bg-muted px-2 py-0.5">Ctrl/Cmd + C</kbd>
                 </div>
+                <div className="flex justify-between">
+                  <span>Copy Full Expression</span>
+                  <kbd className="rounded bg-muted px-2 py-0.5">Ctrl/Cmd + Shift + L</kbd>
+                </div>
               </div>
             </div>
             <div className="space-y-4">

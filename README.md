@@ -112,6 +112,7 @@ The calculator will show both your expression with @ references and the expanded
 - `Alt/⌘ + D` - Toggle Degrees/Radians
 - `Ctrl + (0-9)` - Set decimal places
 - `Ctrl/⌘ + C` - Copy highlighted expression
+- `Ctrl/⌘ + Shift + L` - Copy full expression
 
 ### Tips
 - Brackets are automatically completed as you type
